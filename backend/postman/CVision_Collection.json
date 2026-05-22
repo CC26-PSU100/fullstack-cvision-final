@@ -1,0 +1,372 @@
+{
+	"info": {
+		"_postman_id": "8f8e8f8e-8f8e-8f8e-8f8e-8f8e8f8e8f8e",
+		"name": "CVision API",
+		"description": "API collection for CVision Backend testing.",
+		"schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+	},
+	"item": [
+		{
+			"name": "Authentication",
+			"item": [
+				{
+					"name": "Register",
+					"request": {
+						"method": "POST",
+						"header": [],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n    \"name\": \"John Doe\",\n    \"email\": \"john@example.com\",\n    \"password\": \"password123\"\n}",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "{{base_url}}/auth/register",
+							"host": [
+								"{{base_url}}"
+							],
+							"path": [
+								"auth",
+								"register"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Login",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"const response = pm.response.json();",
+									"if (response.success && response.data.accessToken) {",
+									"    pm.environment.set(\"token\", response.data.accessToken);",
+									"}"
+								],
+								"type": "text/javascript"
+							}
+						}
+					],
+					"request": {
+						"method": "POST",
+						"header": [],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n    \"email\": \"john@example.com\",\n    \"password\": \"password123\"\n}",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "{{base_url}}/auth/login",
+							"host": [
+								"{{base_url}}"
+							],
+							"path": [
+								"auth",
+								"login"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Check Session",
+					"request": {
+						"auth": {
+							"type": "bearer",
+							"bearer": [
+								{
+									"key": "token",
+									"value": "{{token}}",
+									"type": "string"
+								}
+							]
+						},
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "{{base_url}}/auth/me",
+							"host": [
+								"{{base_url}}"
+							],
+							"path": [
+								"auth",
+								"me"
+							]
+						}
+					},
+					"response": []
+				}
+			]
+		},
+		{
+			"name": "CV Management",
+			"item": [
+				{
+					"name": "Get Guest CVs (Unlinked)",
+					"request": {
+						"auth": {
+							"type": "bearer",
+							"bearer": [
+								{
+									"key": "token",
+									"value": "{{token}}",
+									"type": "string"
+								}
+							]
+						},
+						"method": "POST",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							}
+						],
+						"url": {
+							"raw": "{{base_url}}/cv/guest-cvs",
+							"host": [
+								"{{base_url}}"
+							],
+							"path": [
+								"cv",
+								"guest-cvs"
+							]
+						},
+						"description": "Get unlinked CVs uploaded from the same IP before login.\n\n**Endpoint**: GET /api/cv/guest-cvs\n\n**Headers**:\n- Authorization: Bearer {{token}}\n- Content-Type: application/json\n\n**Response**:\n```json\n{\n  \"success\": true,\n  \"data\": {\n    \"count\": 2,\n    \"cvs\": [\n      { \"id\": \"uuid\", \"fileUrl\": \"/uploads/...\", \"status\": \"pending\", \"createdAt\": \"...\" }\n    ]\n  }\n}\n```\n\n**Use Case**: Setelah user login, cek apakah ada CV yang diupload saat masih guest (sebelum login)."
+					},
+					"response": []
+				},
+				{
+					"name": "Link Guest CV to User",
+					"request": {
+						"auth": {
+							"type": "bearer",
+							"bearer": [
+								{
+									"key": "token",
+									"value": "{{token}}",
+									"type": "string"
+								}
+							]
+						},
+						"method": "GET",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							}
+						],
+						"url": {
+							"raw": "{{base_url}}/cv/:cvId/link",
+							"host": [
+								"{{base_url}}"
+							],
+							"path": [
+								"cv",
+								":cvId",
+								"link"
+							],
+							"variable": [
+								{
+									"key": "cvId",
+									"value": ""
+								}
+							]
+						},
+						"description": "Manually link a guest CV to the authenticated user.\n\n**Endpoint**: POST /api/cv/:cvId/link\n\n**Headers**:\n- Authorization: Bearer {{token}}\n- Content-Type: application/json\n\n**Response**:\n```json\n{\n  \"success\": true,\n  \"message\": \"CV successfully linked to user\",\n  \"data\": {\n    \"cvId\": \"uuid\",\n    \"fileUrl\": \"/uploads/...\",\n    \"status\": \"pending\",\n    \"linkedAt\": \"2026-05-22T...\"\n  }\n}\n```\n\n**Use Case**: User yang sudah login bisa secara manual mengclaim CV yang diupload saat masih guest."
+					},
+					"response": []
+				},
+				{
+					"name": "Upload CV",
+					"request": {
+						"auth": {
+							"type": "bearer",
+							"bearer": [
+								{
+									"key": "token",
+									"value": "{{token}}",
+									"type": "string"
+								}
+							]
+						},
+						"method": "POST",
+						"header": [],
+						"body": {
+							"mode": "formdata",
+							"formdata": [
+								{
+									"key": "cv",
+									"type": "file",
+									"src": []
+								}
+							]
+						},
+						"url": {
+							"raw": "{{base_url}}/cv/upload",
+							"host": [
+								"{{base_url}}"
+							],
+							"path": [
+								"cv",
+								"upload"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Process CV",
+					"request": {
+						"method": "POST",
+						"header": [],
+						"url": {
+							"raw": "{{base_url}}/cv/process/:cvId",
+							"host": [
+								"{{base_url}}"
+							],
+							"path": [
+								"cv",
+								"process",
+								":cvId"
+							],
+							"variable": [
+								{
+									"key": "cvId",
+									"value": ""
+								}
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Get CV Detailed Analysis",
+					"request": {
+						"auth": {
+							"type": "bearer",
+							"bearer": [
+								{
+									"key": "token",
+									"value": "{{token}}",
+									"type": "string"
+								}
+							]
+						},
+						"method": "GET",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							}
+						],
+						"url": {
+							"raw": "{{base_url}}/cv/:cvId",
+							"host": [
+								"{{base_url}}"
+							],
+							"path": [
+								"cv",
+								":cvId",
+								"detailed-analysis"
+							],
+							"variable": [
+								{
+									"key": "cvId",
+									"value": ""
+								}
+							]
+						},
+						"description": "Get detailed CV analysis result.\n\n**Endpoint**: GET /api/cv/:cvId/detailed-analysis\n\n**Headers**:\n- Authorization: Bearer {{token}}\n\n**Response**:\n```json\n{\n  \"success\": true,\n  \"data\": {\n    \"cvId\": \"uuid\",\n    \"fileUrl\": \"/uploads/...\",\n    \"fileSize\": 125500,\n    \"fileSizeFormatted\": \"122.56 KB\",\n    \"inputType\": \"pdf\",\n    \"status\": \"done\",\n    \"uploadedAt\": \"2026-05-22T...\",\n    \"recommendations\": [\n      { \"rank\": 1, \"title\": \"Software Engineer\", \"score\": 0.9214, \"category\": \"IT\" },\n      { \"rank\": 2, \"title\": \"Backend Developer\", \"score\": 0.8971, \"category\": \"IT\" }\n    ],\n    \"domains\": [\n      { \"domain\": \"Technology\", \"confidence\": 62.3, \"sector\": \"IT & Software\" },\n      { \"domain\": \"Engineering\", \"confidence\": 25.1, \"sector\": \"Engineering\" }\n    ]\n  }\n}\n```"
+					},
+					"response": []
+				},
+				{
+					"name": "Delete CV",
+					"request": {
+						"auth": {
+							"type": "bearer",
+							"bearer": [
+								{
+									"key": "token",
+									"value": "{{token}}",
+									"type": "string"
+								}
+							]
+						},
+						"method": "DELETE",
+						"header": [],
+						"url": {
+							"raw": "{{base_url}}/cv/:cvId",
+							"host": [
+								"{{base_url}}"
+							],
+							"path": [
+								"cv",
+								":cvId"
+							],
+							"variable": [
+								{
+									"key": "cvId",
+									"value": ""
+								}
+							]
+						}
+					},
+					"response": []
+				}
+			]
+		},
+		{
+			"name": "Utility",
+			"item": [
+				{
+					"name": "Check Guest Limit",
+					"request": {
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "{{base_url}}/cv/guest-limit",
+							"host": [
+								"{{base_url}}"
+							],
+							"path": [
+								"cv",
+								"guest-limit"
+							]
+						}
+					},
+					"response": []
+				}
+			]
+		}
+	],
+	"event": [
+		{
+			"listen": "prerequest",
+			"script": {
+				"type": "text/javascript",
+				"exec": [
+					""
+				]
+			}
+		},
+		{
+			"listen": "test",
+			"script": {
+				"type": "text/javascript",
+				"exec": [
+					""
+				]
+			}
+		}
+	]
+}

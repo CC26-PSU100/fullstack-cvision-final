@@ -1,0 +1,21 @@
+{
+	"id": "e1e1e1e1-e1e1-e1e1-e1e1-e1e1e1e1e1e1",
+	"name": "CVision Local",
+	"values": [
+		{
+			"key": "base_url",
+			"value": "http://localhost:3000/api",
+			"type": "default",
+			"enabled": true
+		},
+		{
+			"key": "token",
+			"value": "",
+			"type": "default",
+			"enabled": true
+		}
+	],
+	"_postman_variable_scope": "environment",
+	"_postman_exported_at": "2026-05-21T00:00:00.000Z",
+	"_postman_exported_using": "Postman/10.0.0"
+}

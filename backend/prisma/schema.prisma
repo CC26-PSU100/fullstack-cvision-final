@@ -1,0 +1,202 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+}
+
+model User {
+  id           String   @id @default(uuid())
+  email        String   @unique
+  passwordHash String   @map("password_hash")
+  createdAt    DateTime @default(now()) @map("created_at")
+
+  profile     Profile?
+  cvs         Cv[]
+  savedJobs   SavedJob[]
+
+  @@map("users")
+}
+
+model Profile {
+  id       String  @id @default(uuid())
+  userId   String  @unique @map("user_id")
+  fullName String? @map("full_name")
+  phone    String?
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@map("profiles")
+}
+
+model Domain {
+  id     String @id @default(uuid())
+  name   String @unique
+  sector String
+
+  cvDomains  CvDomain[]
+  jobDomains JobDomain[]
+
+  @@map("domains")
+}
+
+model Cv {
+  id        String   @id @default(uuid())
+  userId    String?  @map("user_id")
+  ipAddress String?  @map("ip_address")
+  fileUrl   String?  @map("file_url")
+  inputType String   @default("pdf") @map("input_type")
+  status    String   @default("pending")
+  createdAt DateTime @default(now()) @map("created_at")
+
+  user              User?              @relation(fields: [userId], references: [id], onDelete: Cascade)
+  educations        Education[]
+  experiences       Experience[]
+  cvDomains         CvDomain[]
+  cvInterests       CvInterest[]
+  recommendations   Recommendation[]
+  cvAnalysis        CvAnalysis?
+
+  @@map("cvs")
+}
+
+// Menyimpan hasil analisis CV
+model CvAnalysis {
+  id              String   @id @default(uuid())
+  cvId            String   @unique @map("cv_id")
+  analysisResult  Json     @map("analysis_result") // Menyimpan semua hasil analisis
+  createdAt       DateTime @default(now()) @map("created_at")
+  updatedAt       DateTime @updatedAt @map("updated_at")
+
+  cv Cv @relation(fields: [cvId], references: [id], onDelete: Cascade)
+
+  @@map("cv_analysis")
+}
+
+model Education {
+  id          String @id @default(uuid())
+  cvId        String @map("cv_id")
+  level       String?
+  major       String?
+  institution String?
+  startYear   Int?   @map("start_year")
+  endYear     Int?   @map("end_year")
+
+  cv Cv @relation(fields: [cvId], references: [id], onDelete: Cascade)
+
+  @@map("educations")
+}
+
+model Experience {
+  id          String    @id @default(uuid())
+  cvId        String    @map("cv_id")
+  title       String?
+  company     String?
+  description String?
+  startDate   DateTime? @map("start_date")
+  endDate     DateTime? @map("end_date")
+
+  cv Cv @relation(fields: [cvId], references: [id], onDelete: Cascade)
+
+  @@map("experiences")
+}
+
+model CvDomain {
+  id          String @id @default(uuid())
+  cvId        String @map("cv_id")
+  domainId    String @map("domain_id")
+  confidence  Float  @default(0.0)
+  source      String @default("extracted")
+
+  cv     Cv     @relation(fields: [cvId], references: [id], onDelete: Cascade)
+  domain Domain @relation(fields: [domainId], references: [id])
+
+  @@map("cv_domains")
+}
+
+model Interest {
+  id   String @id @default(uuid())
+  name String @unique
+
+  cvInterests CvInterest[]
+
+  @@map("interests")
+}
+
+model CvInterest {
+  id         String @id @default(uuid())
+  cvId       String @map("cv_id")
+  interestId String @map("interest_id")
+
+  cv       Cv       @relation(fields: [cvId], references: [id], onDelete: Cascade)
+  interest Interest @relation(fields: [interestId], references: [id])
+
+  @@map("cv_interests")
+}
+
+model Job {
+  id         String   @id @default(uuid())
+  title      String
+  description String?
+  company    String?
+  location   String?
+  workType   String?  @map("work_type")
+  salaryMin  BigInt?  @map("salary_min")
+  salaryMax  BigInt?  @map("salary_max")
+  postedAt   DateTime @default(now()) @map("posted_at")
+
+  jobDomains          JobDomain[]
+  savedBy             SavedJob[]
+  recommendationItems RecommendationItem[]
+
+  @@map("jobs")
+}
+
+model JobDomain {
+  id       String @id @default(uuid())
+  jobId    String @map("job_id")
+  domainId String @map("domain_id")
+  weight   Int    @default(50)
+
+  job    Job    @relation(fields: [jobId], references: [id], onDelete: Cascade)
+  domain Domain @relation(fields: [domainId], references: [id])
+
+  @@map("job_domains")
+}
+
+model SavedJob {
+  id      String   @id @default(uuid())
+  userId  String   @map("user_id")
+  jobId   String   @map("job_id")
+  savedAt DateTime @default(now()) @map("saved_at")
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+  job  Job  @relation(fields: [jobId], references: [id], onDelete: Cascade)
+
+  @@unique([userId, jobId])
+  @@map("saved_jobs")
+}
+
+model Recommendation {
+  id        String   @id @default(uuid())
+  cvId      String   @map("cv_id")
+  createdAt DateTime @default(now()) @map("created_at")
+
+  cv    Cv                   @relation(fields: [cvId], references: [id], onDelete: Cascade)
+  items RecommendationItem[]
+
+  @@map("recommendations")
+}
+
+model RecommendationItem {
+  id               String @id @default(uuid())
+  recommendationId String @map("recommendation_id")
+  jobId            String @map("job_id")
+  score            Float
+
+  recommendation Recommendation @relation(fields: [recommendationId], references: [id], onDelete: Cascade)
+  job            Job             @relation(fields: [jobId], references: [id])
+
+  @@map("recommendation_items")
+}

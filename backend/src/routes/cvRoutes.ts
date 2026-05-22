@@ -1,0 +1,50 @@
+import { Router } from 'express';
+import * as cvController from '../controllers/cvController';
+import { authenticate, optionalAuthenticate } from '../middleware/auth';
+import multer from 'multer';
+import path from 'path';
+import crypto from 'crypto';
+
+const router = Router();
+
+const storage = multer.diskStorage({
+  destination: (req, file, cb) => {
+    cb(null, 'uploads/');
+  },
+  filename: (req, file, cb) => {
+    
+    const uniqueSuffix = `${Date.now()}-${crypto.randomBytes(8).toString('hex')}`;
+    const ext = path.extname(file.originalname).toLowerCase();
+    cb(null, `cv-${uniqueSuffix}${ext}`);
+  }
+});
+
+const fileFilter = (req: any, file: Express.Multer.File, cb: multer.FileFilterCallback) => {
+  if (file.mimetype === 'application/pdf') {
+    cb(null, true);
+  } else {
+    cb(new Error('Hanya file PDF yang diizinkan'));
+  }
+};
+
+const upload = multer({
+  storage,
+  fileFilter,
+  limits: { fileSize: 5 * 1024 * 1024 } 
+});
+
+router.get('/', authenticate, cvController.getUserCv);
+router.get('/guest-cvs', authenticate, cvController.getGuestCvs);
+router.get('/:cvId/detailed-analysis', authenticate, cvController.getCvDetailedAnalysis);
+router.put('/', authenticate, cvController.updateCv);
+router.post('/experience', authenticate, cvController.addExperience);
+router.put('/skills', authenticate, cvController.updateSkills);
+router.post('/upload', optionalAuthenticate, upload.single('cv'), cvController.uploadCv);
+router.post('/upload-and-analyse', optionalAuthenticate, upload.single('cv'), cvController.uploadAndAnalyse);
+router.post('/analyse', optionalAuthenticate, cvController.analyseCv);
+router.post('/process/:cvId', optionalAuthenticate, cvController.processCv);
+router.post('/:cvId/link', authenticate, cvController.linkCvToUser);
+router.delete('/:cvId', authenticate, cvController.deleteCv);
+router.get('/guest-limit', cvController.checkGuestLimit);
+
+export default router;
