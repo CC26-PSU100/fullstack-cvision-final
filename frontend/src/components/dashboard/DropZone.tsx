@@ -54,7 +54,7 @@ export function DropZone({ onFileUpload, isUploading }: DropZoneProps) {
       onClick={() => inputRef.current?.click()}
       onKeyDown={(e) => e.key === "Enter" && inputRef.current?.click()}
       className={cn(
-        "relative flex flex-col items-center justify-center gap-6 rounded-3xl border-2 border-dashed",
+        "relative flex flex-col items-center justify-center gap-6 rounded-lg border-2 border-dashed",
         "bg-card/30 backdrop-blur-sm cursor-pointer transition-all duration-300",
         "p-10 md:p-12 min-h-[240px]",
         isDragging
@@ -73,7 +73,7 @@ export function DropZone({ onFileUpload, isUploading }: DropZoneProps) {
       />
 
       <div className={cn(
-        "w-20 h-20 rounded-3xl flex items-center justify-center transition-all duration-300",
+        "w-20 h-20 rounded-lg border border-border flex items-center justify-center transition-all duration-300",
         isDragging ? "bg-foreground text-background rotate-12" : "bg-muted text-foreground"
       )}>
         <span className="material-symbols-outlined text-4xl">
@@ -94,7 +94,7 @@ export function DropZone({ onFileUpload, isUploading }: DropZoneProps) {
         </div>
         <div className="flex flex-wrap items-center justify-center gap-2 pt-2">
           {['PDF', 'DOCX'].map(ext => (
-            <span key={ext} className="px-3 py-1 rounded-full bg-secondary/50 text-[10px] font-bold text-secondary-foreground tracking-wider uppercase">
+            <span key={ext} className="px-3 py-1 rounded-lg bg-secondary/50 text-[10px] font-bold text-secondary-foreground">
               {ext}
             </span>
           ))}

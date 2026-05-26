@@ -44,32 +44,30 @@ export function RecentUploadItem({ upload }: RecentUploadItemProps) {
         upload.status === "done" && navigate(`/analysis/${upload.id}`)
       }
       className={cn(
-        "group overflow-hidden rounded-2xl border-border/40 transition-all duration-300 md:rounded-3xl p-1 shadow-sm",
+        "group overflow-hidden rounded-lg border border-border transition-all duration-200 p-1 shadow-sm bg-card",
         upload.status === "done" ? "cursor-pointer hover:bg-muted/50" : "cursor-default"
       )}
     >
-      <CardContent className="flex flex-col gap-4 p-4 sm:flex-row sm:items-center sm:gap-5 md:p-6">
-        <div className="flex h-12 w-12 shrink-0 items-center justify-center rounded-2xl bg-muted shadow-inner transition-all duration-300 group-hover:bg-foreground group-hover:text-background sm:h-14 sm:w-14">
-          <span className="material-symbols-outlined text-2xl leading-none text-foreground transition-all duration-300 group-hover:scale-110 group-hover:text-inherit">
-            description
-          </span>
-        </div>
+      <CardContent className="flex flex-col gap-4 p-4 sm:flex-row sm:items-center sm:gap-5 md:p-6 bg-card text-foreground">
+        <span className="material-symbols-outlined text-[36px] leading-none text-foreground/40 mr-4 sm:mr-5 shrink-0 transition-all duration-200 group-hover:scale-105 group-hover:text-foreground">
+          description
+        </span>
 
         <div className="min-w-0 flex-1 space-y-3">
           <div className="flex items-start justify-between gap-3">
             <div className="min-w-0">
-              <p className="truncate text-base font-semibold leading-snug tracking-tight text-foreground transition-colors duration-300 md:text-lg">
+              <p className="truncate text-base font-semibold leading-snug tracking-tight text-foreground transition-colors duration-200 md:text-lg">
                 {upload.name}
               </p>
 
-              <div className="mt-1.5 flex flex-wrap items-center gap-x-3 gap-y-1 text-[11px] font-medium text-muted-foreground">
+              <div className="mt-1.5 flex flex-wrap items-center gap-x-3 gap-y-1 text-xs font-medium text-muted-foreground">
                 <span className="font-semibold tabular-nums text-foreground/70">
                   {formattedDate}
                 </span>
 
                 <span className="tabular-nums">@{formattedTime}</span>
 
-                <span className="hidden h-1 w-1 rounded-full bg-border sm:inline-block" />
+                <span className="hidden h-1 w-1 rounded-sm bg-border sm:inline-block" />
 
                 <span className="inline-flex items-center gap-1.5">
                   <span className="material-symbols-outlined text-sm">
@@ -85,7 +83,7 @@ export function RecentUploadItem({ upload }: RecentUploadItemProps) {
             <Badge
               variant="outline"
               className={cn(
-                "shrink-0 rounded-full border-none px-2.5 py-1 text-[10px] font-bold uppercase tracking-[0.12em]",
+                "shrink-0 rounded-md border-none px-2.5 py-1 text-xs font-bold",
                 status.className
               )}
             >
@@ -95,14 +93,14 @@ export function RecentUploadItem({ upload }: RecentUploadItemProps) {
 
           {upload.status === "done" && upload.matchScore !== undefined && (
             <div className="flex items-center gap-3">
-              <div className="h-1.5 flex-1 overflow-hidden rounded-full bg-muted">
+              <div className="h-1.5 flex-1 overflow-hidden rounded-sm bg-muted">
                 <div
                   style={{ width: `${upload.matchScore}%` }}
-                  className="h-full rounded-full bg-foreground/80 transition-all duration-700"
+                  className="h-full rounded-sm bg-foreground/80 transition-all duration-700"
                 />
               </div>
 
-              <span className="w-10 text-right text-sm font-bold leading-none tabular-nums text-foreground">
+              <span className="w-10 text-right text-xs font-bold leading-none tabular-nums text-foreground">
                 {upload.matchScore}%
               </span>
             </div>
@@ -110,11 +108,11 @@ export function RecentUploadItem({ upload }: RecentUploadItemProps) {
 
           {upload.status === "parsing" && (
             <div className="flex items-center gap-3">
-              <div className="h-1.5 flex-1 overflow-hidden rounded-full bg-muted">
-                <div className="h-full w-2/3 animate-pulse rounded-full bg-foreground/30" />
+              <div className="h-1.5 flex-1 overflow-hidden rounded-sm bg-muted">
+                <div className="h-full w-2/3 animate-pulse rounded-sm bg-foreground/30" />
               </div>
 
-              <span className="w-10 text-right text-[10px] font-bold uppercase tracking-widest text-muted-foreground">
+              <span className="w-10 text-right text-xs font-bold text-muted-foreground">
                 Tunggu
               </span>
             </div>

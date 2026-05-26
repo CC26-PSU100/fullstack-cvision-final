@@ -12,10 +12,9 @@ const storage = multer.diskStorage({
     cb(null, 'uploads/');
   },
   filename: (req, file, cb) => {
-    
-    const uniqueSuffix = `${Date.now()}-${crypto.randomBytes(8).toString('hex')}`;
-    const ext = path.extname(file.originalname).toLowerCase();
-    cb(null, `cv-${uniqueSuffix}${ext}`);
+    const originalName = path.parse(file.originalname).name.replace(/[^a-zA-Z0-9_-]/g, '_');
+    const hashing = crypto.randomBytes(4).toString('hex');
+    cb(null, `cv-${originalName}-${hashing}.pdf`);
   }
 });
 
@@ -30,7 +29,7 @@ const fileFilter = (req: any, file: Express.Multer.File, cb: multer.FileFilterCa
 const upload = multer({
   storage,
   fileFilter,
-  limits: { fileSize: 5 * 1024 * 1024 } 
+  limits: { fileSize: 5 * 1024 * 1024 }
 });
 
 router.get('/', authenticate, cvController.getUserCv);

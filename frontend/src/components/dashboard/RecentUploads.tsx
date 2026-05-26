@@ -1,12 +1,11 @@
 import { RecentUploadItem } from "./RecentUploadItem";
 import { Card, CardContent } from "@/components/ui/card";
 import type { CVFile } from "@/types/cv";
+import { useNavigate } from "react-router-dom";
 
 interface RecentUploadsProps {
   uploads: CVFile[];
 }
-
-import { useNavigate } from "react-router-dom";
 
 export function RecentUploads({ uploads }: RecentUploadsProps) {
   const navigate = useNavigate();
@@ -21,16 +20,16 @@ export function RecentUploads({ uploads }: RecentUploadsProps) {
         </h2>
         <button 
           onClick={() => navigate('/history')}
-          className="text-xs font-bold text-foreground/60 hover:text-foreground hover:underline uppercase tracking-widest"
+          className="text-xs font-bold text-foreground/60 hover:text-foreground hover:underline cursor-pointer"
         >
-          Lihat Semua
+          Lihat semua
         </button>
       </div>
 
       {safeUploads.length === 0 ? (
-        <Card className="bg-card/50 border-border/40 border-dashed rounded-3xl">
+        <Card className="bg-card/50 border border-border border-dashed rounded-lg">
           <CardContent className="p-12 flex flex-col items-center justify-center text-center">
-            <div className="w-16 h-16 rounded-2xl bg-muted/50 flex items-center justify-center mb-4">
+            <div className="w-16 h-16 rounded-lg bg-muted/50 flex items-center justify-center mb-4 border border-border">
               <span className="material-symbols-outlined text-muted-foreground/40 text-3xl">
                 folder_open
               </span>
@@ -51,4 +50,5 @@ export function RecentUploads({ uploads }: RecentUploadsProps) {
         </div>
       )}
     </div>
-  );}
+  );
+}

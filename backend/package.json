@@ -10,6 +10,7 @@
       "start": "node dist/server.js",
       "init": "copy .env.example .env",
       "prisma:generate": "prisma generate",
+      "prisma:reset" : "prisma migrate reset",   
       "prisma:migrate": "prisma migrate dev",
       "prisma:studio": "prisma studio"
    },
