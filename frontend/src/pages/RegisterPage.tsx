@@ -41,7 +41,15 @@ export default function RegisterPage() {
   };
 
   return (
-    <div className="min-h-screen w-full flex bg-background">
+    <div className="min-h-screen w-full flex bg-background relative">
+      <button
+        onClick={() => navigate("/")}
+        className="absolute top-8 left-8 flex items-center gap-2 text-sm font-bold text-muted-foreground hover:text-foreground transition-colors cursor-pointer z-50"
+      >
+        <span className="material-symbols-outlined text-[20px]">arrow_back</span>
+        Kembali
+      </button>
+
       <div className="hidden lg:flex lg:w-1/2 relative bg-card overflow-hidden items-center justify-center p-12 border-r border-border">
         <div className="absolute top-0 left-0 w-full h-full opacity-40">
            <div className="absolute top-[-10%] right-[-10%] w-full h-full bg-linear-to-bl from-white/10 to-transparent rounded-lg blur-3xl" />

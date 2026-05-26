@@ -85,7 +85,7 @@ function SidebarContent({
     localStorage.removeItem("accessToken");
     localStorage.removeItem("user");
     toast.success("Berhasil keluar");
-    navigate("/login");
+    navigate("/");
   };
 
   return (

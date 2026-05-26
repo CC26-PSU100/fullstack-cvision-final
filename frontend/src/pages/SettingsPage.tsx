@@ -58,7 +58,7 @@ export default function SettingsPage() {
       localStorage.removeItem("user");
       localStorage.removeItem("accessToken");
       toast.success("Berhasil keluar");
-      navigate("/login");
+      navigate("/");
    };
 
    const handleDeleteAccount = () => {
@@ -66,7 +66,7 @@ export default function SettingsPage() {
       localStorage.removeItem("user");
       localStorage.removeItem("accessToken");
       toast.success("Akun berhasil dihapus secara permanen");
-      navigate("/login");
+      navigate("/");
    };
 
    const initials = formData.name
