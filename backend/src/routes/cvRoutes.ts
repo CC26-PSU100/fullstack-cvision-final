@@ -43,6 +43,7 @@ router.post('/upload-and-analyse', optionalAuthenticate, upload.single('cv'), cv
 router.post('/analyse', optionalAuthenticate, cvController.analyseCv);
 router.post('/process/:cvId', optionalAuthenticate, cvController.processCv);
 router.post('/:cvId/link', authenticate, cvController.linkCvToUser);
+router.delete('/all', authenticate, cvController.deleteAllCvs);
 router.delete('/:cvId', authenticate, cvController.deleteCv);
 router.get('/guest-limit', cvController.checkGuestLimit);
 

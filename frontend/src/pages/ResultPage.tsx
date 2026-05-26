@@ -44,18 +44,28 @@ export default function ResultPage() {
    const [uploadError, setUploadError] = useState<string | null>(null);
    const [isDeleting, setIsDeleting] = useState(false);
    const uploadTriggeredRef = useRef(false);
+   const abortControllerRef = useRef<AbortController | null>(null);
+   const fileRef = useRef<File | null>(null);
+
+   if (!fileRef.current && location.state?.file) {
+      fileRef.current = location.state.file;
+   }
 
    useEffect(() => {
       if (id !== "new") return;
 
-      const file = location.state?.file;
+      const file = fileRef.current;
+
       if (!file) {
-         navigate("/dashboard");
+         navigate("/dashboard", { replace: true });
          return;
       }
 
       if (uploadTriggeredRef.current) return;
       uploadTriggeredRef.current = true;
+
+      const controller = new AbortController();
+      abortControllerRef.current = controller;
 
       let isMounted = true;
 
@@ -76,7 +86,7 @@ export default function ResultPage() {
          }
       }, 3000);
 
-      api.uploadCV(file)
+      api.uploadCV(file, controller.signal)
          .then((savedFile) => {
             if (isMounted) {
                setData(savedFile);
@@ -84,7 +94,7 @@ export default function ResultPage() {
             }
          })
          .catch((error) => {
-            if (isMounted) {
+            if (isMounted && error.name !== "AbortError") {
                console.error("Analysis failed:", error);
                setUploadError(error.message || "Gagal menganalisis CV.");
             }
@@ -101,7 +111,7 @@ export default function ResultPage() {
          clearInterval(timer);
          clearInterval(stepInterval);
       };
-   }, [id, location.state, navigate]);
+   }, [id, navigate]);
 
    useEffect(() => {
       if (!id || id === "new") return;

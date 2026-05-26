@@ -1,6 +1,7 @@
 import { RecentUploadItem } from "@/components/dashboard/RecentUploadItem";
 import { PageWrapper } from "@/components/layout/PageWrapper";
 import { Card, CardContent } from "@/components/ui/card";
+import { ConfirmationModal } from "@/components/ui/ConfirmationModal";
 import {
    DropdownMenu,
    DropdownMenuContent,
@@ -9,17 +10,27 @@ import {
 import { Input } from "@/components/ui/input";
 import { Select } from "@/components/ui/select";
 import { useRecentUploads } from "@/hooks/useRecentUploads";
+import { api } from "@/services/api";
+import { clearApiCache } from "@/services/api";
 import { useState } from "react";
+import { useNavigate } from "react-router-dom";
+import { toast } from "sonner";
 
 export default function HistoryPage() {
-   const { uploads } = useRecentUploads();
+   const navigate = useNavigate();
+   const { uploads, refetch } = useRecentUploads();
 
    const [searchQuery, setSearchQuery] = useState("");
    const [isFilterOpen, setIsFilterOpen] = useState(false);
-
    const [dateFilter, setDateFilter] = useState("all");
    const [statusFilter, setStatusFilter] = useState("all");
    const [scoreFilter, setScoreFilter] = useState("all");
+
+   const [isDeleteAllModalOpen, setIsDeleteAllModalOpen] = useState(false);
+   const [isDeletingAll, setIsDeletingAll] = useState(false);
+   const [deletingId, setDeletingId] = useState<string | null>(null);
+   const [deleteTargetId, setDeleteTargetId] = useState<string | null>(null);
+   const [isDeleteSingleModalOpen, setIsDeleteSingleModalOpen] = useState(false);
 
    const safeUploads = Array.isArray(uploads) ? uploads : [];
 
@@ -92,6 +103,53 @@ export default function HistoryPage() {
       setDateFilter("all");
       setStatusFilter("all");
       setScoreFilter("all");
+   };
+
+   const handleDeleteSingleRequest = (cvId: string) => {
+      setDeleteTargetId(cvId);
+      setIsDeleteSingleModalOpen(true);
+   };
+
+   const handleDeleteSingleConfirm = async () => {
+      if (!deleteTargetId) return;
+      setIsDeleteSingleModalOpen(false);
+      setDeletingId(deleteTargetId);
+      const toastId = toast.loading("Sedang menghapus CV...");
+      try {
+         await api.deleteCV(deleteTargetId);
+         toast.success("CV berhasil dihapus.", { id: toastId });
+         clearApiCache();
+         refetch();
+      } catch (error: any) {
+         toast.error(error.message || "Gagal menghapus CV", { id: toastId });
+      } finally {
+         setDeletingId(null);
+         setDeleteTargetId(null);
+      }
+   };
+
+   const handleDeleteAll = async () => {
+      setIsDeleteAllModalOpen(false);
+      setIsDeletingAll(true);
+      const toastId = toast.loading(
+         "Sedang menghapus semua CV dan file dari server...",
+      );
+      try {
+         const result = await api.deleteAllCVs();
+         toast.success(
+            `${result.data?.deleted ?? result.deleted ?? safeUploads.length} CV berhasil dihapus secara permanen.`,
+            { id: toastId },
+         );
+         clearApiCache();
+         refetch();
+         navigate("/dashboard");
+      } catch (error: any) {
+         toast.error(error.message || "Gagal menghapus semua CV", {
+            id: toastId,
+         });
+      } finally {
+         setIsDeletingAll(false);
+      }
    };
 
    return (
@@ -196,6 +254,18 @@ export default function HistoryPage() {
                      </div>
                   </DropdownMenuContent>
                </DropdownMenu>
+
+               {safeUploads.length > 0 && (
+                  <button
+                     onClick={() => setIsDeleteAllModalOpen(true)}
+                     className="h-10 flex items-center justify-center gap-2 px-4 rounded-sm bg-red-950/20 border border-red-500/30 text-red-400 text-sm font-bold hover:bg-red-950/50 hover:text-red-300 transition-colors duration-200 shadow-sm cursor-pointer shrink-0"
+                  >
+                     <span className="material-symbols-outlined text-[20px] leading-none">
+                        delete_sweep
+                     </span>
+                     Hapus Semua
+                  </button>
+               )}
             </div>
          </div>
 
@@ -217,11 +287,59 @@ export default function HistoryPage() {
             ) : (
                <div className="grid gap-6 grid-cols-1 md:grid-cols-2 xl:grid-cols-3">
                   {filteredUploads.map((upload) => (
-                     <RecentUploadItem key={upload.id} upload={upload} />
+                     <RecentUploadItem
+                        key={upload.id}
+                        upload={upload}
+                        onDeleteRequest={handleDeleteSingleRequest}
+                        isDeleting={deletingId === upload.id}
+                     />
                   ))}
                </div>
             )}
          </div>
+
+         <ConfirmationModal
+            isOpen={isDeleteSingleModalOpen}
+            title="Konfirmasi hapus CV"
+            message="Apakah Anda yakin ingin menghapus CV ini beserta seluruh analisisnya? Tindakan ini tidak dapat dibatalkan."
+            confirmText="Hapus"
+            cancelText="Batal"
+            onConfirm={handleDeleteSingleConfirm}
+            onCancel={() => {
+               setIsDeleteSingleModalOpen(false);
+               setDeleteTargetId(null);
+            }}
+         />
+
+         <ConfirmationModal
+            isOpen={isDeleteAllModalOpen}
+            title="Hapus semua CV"
+            message={`Anda akan menghapus ${safeUploads.length} CV beserta seluruh file dan data analisis secara permanen dari akun dan server Anda. Tindakan ini tidak dapat dibatalkan.`}
+            confirmText="Hapus Semua"
+            cancelText="Batal"
+            onConfirm={handleDeleteAll}
+            onCancel={() => setIsDeleteAllModalOpen(false)}
+         />
+
+         {(isDeletingAll || deletingId !== null) && (
+            <div className="fixed inset-0 z-50 flex flex-col items-center justify-center bg-background/80 backdrop-blur-md transition-opacity duration-300">
+               <div className="bg-card border border-border p-8 rounded-xl max-w-sm w-full text-center space-y-4 shadow-2xl">
+                  <span className="animate-spin material-symbols-outlined text-4xl text-red-500">
+                     progress_activity
+                  </span>
+                  <div className="space-y-1">
+                     <p className="text-lg font-bold text-foreground">
+                        {isDeletingAll ? "Menghapus Semua Data" : "Menghapus CV"}
+                     </p>
+                     <p className="text-xs text-muted-foreground leading-relaxed">
+                        {isDeletingAll
+                           ? "Mohon tunggu, seluruh CV dan file sedang dihapus dari server."
+                           : "Mohon tunggu, dokumen dan data analisis sedang dihapus dari server."}
+                     </p>
+                  </div>
+               </div>
+            </div>
+         )}
       </PageWrapper>
    );
 }

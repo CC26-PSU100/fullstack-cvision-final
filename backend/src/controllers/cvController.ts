@@ -705,3 +705,48 @@ export const getCvDetailedAnalysis = async (req: any, res: Response) => {
       res.status(500).json({ success: false, message: error.message });
    }
 };
+
+export const deleteAllCvs = async (req: any, res: Response) => {
+   try {
+      const userId = req.user.id;
+
+      const cvs = await (prisma.cv as any).findMany({
+         where: { userId },
+         select: { id: true, fileUrl: true },
+      });
+
+      if (cvs.length === 0) {
+         return res.status(200).json({ success: true, deleted: 0 });
+      }
+
+      for (const cv of cvs) {
+         if (
+            cv.fileUrl &&
+            (cv.fileUrl.startsWith("http://") || cv.fileUrl.startsWith("https://"))
+         ) {
+            try {
+               const parts = cv.fileUrl.split("/upload/");
+               if (parts.length === 2) {
+                  const pathPart = parts[1].replace(/^v\d+\//, "");
+                  const resourceType = parts[0].endsWith("/raw") ? "raw" : "image";
+                  const publicId =
+                     resourceType === "raw"
+                        ? pathPart
+                        : pathPart.replace(/\.[^/.]+$/, "");
+                  await cloudinary.uploader.destroy(publicId, {
+                     resource_type: resourceType,
+                  });
+               }
+            } catch (cloudErr) {
+               console.error(cloudErr);
+            }
+         }
+      }
+
+      await (prisma.cv as any).deleteMany({ where: { userId } });
+
+      res.status(200).json({ success: true, deleted: cvs.length });
+   } catch (error: any) {
+      res.status(500).json({ success: false, message: error.message });
+   }
+};

@@ -85,7 +85,7 @@ export const api = {
     return data;
   },
 
-  async uploadCV(file: File): Promise<any> {
+  async uploadCV(file: File, signal?: AbortSignal): Promise<any> {
     clearApiCache();
     const token = localStorage.getItem("accessToken");
     if (!token) throw new Error("Authentication token not found");
@@ -96,6 +96,7 @@ export const api = {
     const res = await authorizedFetch(`${BACKEND_URL}/cv/upload-and-analyse`, {
       method: "POST",
       body: formData,
+      signal,
     });
 
     const data = await res.json();
@@ -231,6 +232,26 @@ export const api = {
     const data = await res.json();
     if (!res.ok || !data.success) {
       throw new Error(data.message || "Failed to delete CV");
+    }
+
+    return data;
+  },
+
+  async deleteAllCVs(): Promise<any> {
+    clearApiCache();
+    const token = localStorage.getItem("accessToken");
+    if (!token) throw new Error("Authentication token not found");
+
+    const res = await authorizedFetch(`${BACKEND_URL}/cv/all`, {
+      method: "DELETE",
+      headers: {
+        "Content-Type": "application/json"
+      }
+    });
+
+    const data = await res.json();
+    if (!res.ok || !data.success) {
+      throw new Error(data.message || "Failed to delete all CVs");
     }
 
     return data;
