@@ -1,6 +1,7 @@
 import { Request, Response } from "express";
 import fs from "fs";
 import path from "path";
+import axios from "axios";
 import cloudinary from "../config/cloudinary";
 import prisma from "../config/prisma";
 
@@ -93,15 +94,21 @@ export const getUserCv = async (req: any, res: Response) => {
       const userId = req.user.id;
       const cvs = await (prisma.cv as any).findMany({
          where: { userId },
+         include: {
+            cvAnalysis: true,
+         },
          orderBy: { createdAt: "desc" },
       });
 
       const cvsWithSize = cvs.map((cv: any) => {
          const fileInfo = getFileSize(cv.fileUrl);
+         const analysisResult = cv.cvAnalysis?.analysisResult || {};
+         const metadata = (analysisResult as any).metadata || {};
          return {
             ...cv,
-            fileSize: fileInfo.size,
-            fileSizeFormatted: fileInfo.formatted,
+            fileSize: metadata.fileSize || fileInfo.size,
+            fileSizeFormatted: metadata.fileSizeFormatted || fileInfo.formatted,
+            originalName: metadata.originalName || cv.fileUrl?.split("/").pop() || "Untitled CV",
             fileExists: fileInfo.exists,
          };
       });
@@ -359,29 +366,6 @@ export const getGuestCvs = async (req: any, res: Response) => {
    }
 };
 
-function generateDummyAnalysis(): any {
-   return {
-      recommendations: [
-         { rank: 1, title: "Software Engineer", score: 0.9214, category: "IT" },
-         { rank: 2, title: "Backend Developer", score: 0.8971, category: "IT" },
-         {
-            rank: 3,
-            title: "Full Stack Developer",
-            score: 0.8543,
-            category: "IT",
-         },
-         { rank: 4, title: "DevOps Engineer", score: 0.7821, category: "IT" },
-         { rank: 5, title: "Data Engineer", score: 0.7456, category: "IT" },
-      ],
-      domains: [
-         { domain: "Technology", confidence: 62.3, sector: "IT & Software" },
-         { domain: "Engineering", confidence: 25.1, sector: "Engineering" },
-         { domain: "Business", confidence: 8.5, sector: "Management" },
-         { domain: "Design", confidence: 4.1, sector: "Creative" },
-      ],
-   };
-}
-
 export const uploadAndAnalyse = async (req: any, res: Response) => {
    try {
       const file = req.file;
@@ -390,6 +374,30 @@ export const uploadAndAnalyse = async (req: any, res: Response) => {
             .status(400)
             .json({ success: false, message: "No file uploaded" });
       }
+
+      const startTime = Date.now();
+
+      const fileBuffer = fs.readFileSync(file.path);
+      const fileBlob = new Blob([fileBuffer], { type: file.mimetype });
+      const formData = new FormData();
+      formData.append("file", fileBlob, file.originalname);
+
+      const aiResponse = await axios.post("https://cv-recommender-306785532444.asia-southeast2.run.app/recommend", formData, {
+         headers: {
+            "Content-Type": "multipart/form-data",
+         },
+      });
+
+      const analysisResult = aiResponse.data;
+      const endTime = Date.now();
+      const scanDurationSeconds = Math.round((endTime - startTime) / 1000);
+
+      analysisResult.metadata = {
+         fileSize: file.size,
+         fileSizeFormatted: formatFileSize(file.size),
+         originalName: file.originalname,
+         scanDurationSeconds
+      };
 
       const userId = req.user?.id;
       const folderPath = userId ? `cvs/${userId}` : "cvs/guests";
@@ -410,8 +418,6 @@ export const uploadAndAnalyse = async (req: any, res: Response) => {
 
       const ipAddress = req.ip;
 
-      const analysisResult = generateDummyAnalysis();
-
       const cv = await (prisma.cv as any).create({
          data: {
             userId,
@@ -428,6 +434,64 @@ export const uploadAndAnalyse = async (req: any, res: Response) => {
             analysisResult,
          },
       });
+
+      if (analysisResult.domains && Array.isArray(analysisResult.domains)) {
+         for (const dom of analysisResult.domains) {
+            let dbDomain = await (prisma.domain as any).findFirst({
+               where: { name: dom.domain }
+            });
+            if (!dbDomain) {
+               dbDomain = await (prisma.domain as any).create({
+                  data: {
+                     name: dom.domain,
+                     sector: dom.sector || "General"
+                  }
+               });
+            }
+            await (prisma.cvDomain as any).create({
+               data: {
+                  cvId: cv.id,
+                  domainId: dbDomain.id,
+                  confidence: dom.confidence,
+                  source: "extracted"
+               }
+            });
+         }
+      }
+
+      if (analysisResult.recommendations && Array.isArray(analysisResult.recommendations)) {
+         const recommendation = await (prisma.recommendation as any).create({
+            data: {
+               cvId: cv.id
+            }
+         });
+
+         for (const rec of analysisResult.recommendations) {
+            let dbJob = await (prisma.job as any).findFirst({
+               where: { title: rec.title }
+            });
+            if (!dbJob) {
+               const glintsUrl = `https://glints.com/id/opportunities/jobs/explore?keyword=${encodeURIComponent(rec.title)}&country=ID&locationName=All+Cities%2FProvinces&lowestLocationLevel=1`;
+               const indeedUrl = `https://id.indeed.com/jobs?q=${encodeURIComponent(rec.title)}`;
+               dbJob = await (prisma.job as any).create({
+                  data: {
+                     title: rec.title,
+                     description: `Rekomendasi karir untuk ${rec.title}. Cari lowongan kerja di Glints: ${glintsUrl} atau di Indeed: ${indeedUrl}`,
+                     company: "Mitra CVision",
+                     location: "Indonesia",
+                     workType: "Full-time",
+                  }
+               });
+            }
+            await (prisma.recommendationItem as any).create({
+               data: {
+                  recommendationId: recommendation.id,
+                  jobId: dbJob.id,
+                  score: rec.score
+               }
+            });
+         }
+      }
 
       res.json({
          success: true,
@@ -473,7 +537,30 @@ export const analyseCv = async (req: any, res: Response) => {
          });
       }
 
-      const analysisResult = generateDummyAnalysis();
+      const startTime = Date.now();
+
+      const fileResponse = await axios.get(cv.fileUrl, { responseType: "arraybuffer" });
+      const fileBuffer = Buffer.from(fileResponse.data);
+      const fileBlob = new Blob([fileBuffer], { type: "application/pdf" });
+      const formData = new FormData();
+      formData.append("file", fileBlob, "cv.pdf");
+
+      const aiResponse = await axios.post("https://cv-recommender-306785532444.asia-southeast2.run.app/recommend", formData, {
+         headers: {
+            "Content-Type": "multipart/form-data",
+         },
+      });
+
+      const analysisResult = aiResponse.data;
+      const endTime = Date.now();
+      const scanDurationSeconds = Math.round((endTime - startTime) / 1000);
+
+      analysisResult.metadata = {
+         fileSize: fileBuffer.length,
+         fileSizeFormatted: formatFileSize(fileBuffer.length),
+         originalName: cv.fileUrl.split("/").pop() || "cv.pdf",
+         scanDurationSeconds
+      };
 
       await (prisma.cv as any).update({
          where: { id: cvId },
@@ -485,6 +572,72 @@ export const analyseCv = async (req: any, res: Response) => {
          create: { cvId, analysisResult },
          update: { analysisResult },
       });
+
+      await (prisma.cvDomain as any).deleteMany({
+         where: { cvId }
+      });
+
+      if (analysisResult.domains && Array.isArray(analysisResult.domains)) {
+         for (const dom of analysisResult.domains) {
+            let dbDomain = await (prisma.domain as any).findFirst({
+               where: { name: dom.domain }
+            });
+            if (!dbDomain) {
+               dbDomain = await (prisma.domain as any).create({
+                  data: {
+                     name: dom.domain,
+                     sector: dom.sector || "General"
+                  }
+               });
+            }
+            await (prisma.cvDomain as any).create({
+               data: {
+                  cvId,
+                  domainId: dbDomain.id,
+                  confidence: dom.confidence,
+                  source: "extracted"
+               }
+            });
+         }
+      }
+
+      await (prisma.recommendation as any).deleteMany({
+         where: { cvId }
+      });
+
+      if (analysisResult.recommendations && Array.isArray(analysisResult.recommendations)) {
+         const recommendation = await (prisma.recommendation as any).create({
+            data: {
+               cvId
+            }
+         });
+
+         for (const rec of analysisResult.recommendations) {
+            let dbJob = await (prisma.job as any).findFirst({
+               where: { title: rec.title }
+            });
+            if (!dbJob) {
+               const glintsUrl = `https://glints.com/id/opportunities/jobs/explore?keyword=${encodeURIComponent(rec.title)}&country=ID&locationName=All+Cities%2FProvinces&lowestLocationLevel=1`;
+               const indeedUrl = `https://id.indeed.com/jobs?q=${encodeURIComponent(rec.title)}`;
+               dbJob = await (prisma.job as any).create({
+                  data: {
+                     title: rec.title,
+                     description: `Rekomendasi karir untuk ${rec.title}. Cari lowongan kerja di Glints: ${glintsUrl} atau di Indeed: ${indeedUrl}`,
+                     company: "Mitra CVision",
+                     location: "Indonesia",
+                     workType: "Full-time",
+                  }
+               });
+            }
+            await (prisma.recommendationItem as any).create({
+               data: {
+                  recommendationId: recommendation.id,
+                  jobId: dbJob.id,
+                  score: rec.score
+               }
+            });
+         }
+      }
 
       res.json({
          success: true,
@@ -519,12 +672,21 @@ export const getCvDetailedAnalysis = async (req: any, res: Response) => {
          });
       }
 
+      const fileInfo = getFileSize(cv.fileUrl);
       const analysisResult = cv.cvAnalysis?.analysisResult || {
          recommendations: [],
          domains: [],
       };
 
-      const fileInfo = getFileSize(cv.fileUrl);
+      const finalAnalysisResult = typeof analysisResult === "object" ? { ...analysisResult } : { recommendations: [], domains: [] };
+      if (!finalAnalysisResult.metadata) {
+         finalAnalysisResult.metadata = {
+            fileSize: fileInfo.size,
+            fileSizeFormatted: fileInfo.formatted,
+            originalName: cv.fileUrl?.split("/").pop() || "cv.pdf",
+            scanDurationSeconds: 15
+         };
+      }
 
       res.json({
          success: true,
@@ -536,33 +698,10 @@ export const getCvDetailedAnalysis = async (req: any, res: Response) => {
             inputType: cv.inputType,
             status: cv.status,
             uploadedAt: cv.createdAt,
-            ...analysisResult,
+            ...finalAnalysisResult,
          },
       });
    } catch (error: any) {
       res.status(500).json({ success: false, message: error.message });
    }
 };
-
-function generateDummyRecommendations(domains: any[]): any[] {
-   const jobTitles = [
-      { title: "Software Engineer", category: "IT" },
-      { title: "Backend Developer", category: "IT" },
-      { title: "Frontend Developer", category: "IT" },
-      { title: "Full Stack Developer", category: "IT" },
-      { title: "DevOps Engineer", category: "IT" },
-      { title: "Data Engineer", category: "IT" },
-      { title: "Product Manager", category: "Management" },
-      { title: "UI/UX Designer", category: "Design" },
-      { title: "QA Engineer", category: "IT" },
-      { title: "Cloud Engineer", category: "IT" },
-   ];
-
-   const shuffled = jobTitles.sort(() => 0.5 - Math.random());
-   return shuffled.slice(0, 5).map((job, index) => ({
-      rank: index + 1,
-      title: job.title,
-      score: parseFloat((0.9 - index * 0.05).toFixed(4)),
-      category: job.category,
-   }));
-}

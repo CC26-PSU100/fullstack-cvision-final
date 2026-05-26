@@ -2,7 +2,7 @@ import type { CVFile } from "@/types/cv";
 import type { DashboardStats } from "@/types/stats";
 import type { AuthResponse, RegisterPayload, LoginPayload } from "@/types/auth";
 
-const BASE_URL = "http://localhost:3000";
+const BASE_URL = typeof window !== "undefined" ? window.location.origin : "http://localhost:3000";
 const BACKEND_URL = `${BASE_URL}/api`;
 
 const normalizeFileUrl = (url?: string) => {
@@ -153,7 +153,7 @@ export const api = {
 
     const formatted = rawCVs.map((cv: any) => ({
       id: cv.id,
-      name: cv.fileUrl?.split('/').pop() || "Untitled CV",
+      name: cv.originalName || cv.fileUrl?.split('/').pop() || "Untitled CV",
       size: cv.fileSize || 0,
       sizeFormatted: cv.fileSizeFormatted,
       uploadedAt: new Date(cv.createdAt),

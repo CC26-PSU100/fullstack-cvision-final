@@ -30,6 +30,8 @@ export interface CVAnalysisResult {
     status: string;
     uploadedAt: string;
     updatedAt: string;
+    originalName?: string;
+    scanDurationSeconds?: number;
   };
   summary?: {
     totalEducations: number;

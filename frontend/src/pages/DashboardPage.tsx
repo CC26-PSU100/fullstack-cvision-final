@@ -86,28 +86,7 @@ export default function DashboardPage() {
          return;
       }
 
-      toast.promise(
-         (async () => {
-            console.log("Uploading and Analyzing CV:", file.name);
-
-            const savedFile = await api.uploadCV(file);
-
-            refetch();
-
-            if (savedFile.id) {
-               setTimeout(() => navigate(`/analysis/${savedFile.id}`), 1000);
-            }
-
-            return savedFile;
-         })(),
-         {
-            loading: "Processing your CV with AI...",
-            success: (savedFile: any) =>
-               `${savedFile.name || file.name} analysed successfully. Redirecting...`,
-            error: (err: any) =>
-               err.message || "Failed to process CV. Please try again.",
-         },
-      );
+      navigate("/analysis/new", { state: { file } });
    };
 
    const handleFileChange = (e: ChangeEvent<HTMLInputElement>) => {
@@ -176,19 +155,19 @@ export default function DashboardPage() {
                         label="Total CV terurai"
                         value={stats.totalCVsParsed}
                         icon="description"
-                        description="Meningkat 12% bulan ini"
+                        description={stats.cvsParsedDescription || "Belum ada unggahan bulan ini"}
                      />
                      <StatCard
                         label="Tingkat kecocokan kerja"
                         value={`${stats.jobMatchRate}%`}
                         icon="bolt"
-                        description="Berada di 5% teratas"
+                        description={stats.jobMatchRateDescription || "Unggah CV untuk melihat tingkat kecocokan"}
                      />
                      <StatCard
                         label="Rekomendasi pekerjaan"
                         value={stats.jobRecommendations}
                         icon="magic_button"
-                        description="4 baru sejak kemarin"
+                        description={stats.jobRecommendationsDescription || "Belum ada rekomendasi baru"}
                      />
                   </>
                ) : null}
