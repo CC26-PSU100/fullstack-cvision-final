@@ -6,7 +6,6 @@ import { PageWrapper } from "@/components/layout/PageWrapper";
 import { Card, CardContent } from "@/components/ui/card";
 import { useRecentUploads } from "@/hooks/useRecentUploads";
 import { useStats } from "@/hooks/useStats";
-import { api } from "@/services/api";
 import { useRef, type ChangeEvent } from "react";
 import { useNavigate } from "react-router-dom";
 import { toast } from "sonner";
@@ -67,7 +66,7 @@ export default function DashboardPage() {
    const navigate = useNavigate();
    const fileInputRef = useRef<HTMLInputElement>(null);
    const { data: stats, isLoading: statsLoading } = useStats();
-   const { uploads, refetch } = useRecentUploads();
+   const { uploads } = useRecentUploads();
 
    const userJson = localStorage.getItem("user");
    const user = userJson ? JSON.parse(userJson) : null;
