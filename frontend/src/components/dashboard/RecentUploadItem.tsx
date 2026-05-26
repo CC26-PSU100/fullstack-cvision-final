@@ -83,7 +83,7 @@ export function RecentUploadItem({ upload }: RecentUploadItemProps) {
             <Badge
               variant="outline"
               className={cn(
-                "shrink-0 rounded-md border-none px-2.5 py-1 text-xs font-bold",
+                "shrink-0 rounded-sm border-none px-2.5 py-1 text-xs font-bold",
                 status.className
               )}
             >

@@ -1,4 +1,3 @@
-import { Header } from "@/components/layout/Header";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Card, CardContent } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
@@ -7,6 +6,7 @@ import { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { toast } from "sonner";
 import { ConfirmationModal } from "@/components/ui/ConfirmationModal";
+import { PageWrapper } from "@/components/layout/PageWrapper";
 
 export default function SettingsPage() {
    const navigate = useNavigate();
@@ -79,42 +79,40 @@ export default function SettingsPage() {
       : "??";
 
    return (
-      <div className="min-h-full flex flex-col selection:bg-primary/20">
-         <Header title="Pengaturan" />
-
-         <main className="flex-1 w-full max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6 sm:py-8 lg:py-10">
-            <div className="max-w-4xl mx-auto space-y-8">
-               <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
-                  <div className="space-y-1">
-                     <h2 className="text-3xl font-bold tracking-tight text-foreground">
-                        Pengaturan akun
-                     </h2>
-                     <p className="text-sm text-muted-foreground">
-                        Kelola informasi pribadi dan status akun Anda.
-                     </p>
-                  </div>
-                  <button
-                     onClick={() => setIsLogoutModalOpen(true)}
-                     className="inline-flex items-center justify-center gap-2 px-4 py-2 rounded-sm bg-red-950/30 border border-red-500/20 text-red-500 text-sm font-semibold hover:bg-red-950/70 hover:text-red-400 transition-colors duration-200 cursor-pointer"
-                  >
-                     <span className="material-symbols-outlined text-lg">
-                        logout
-                     </span>
-                     Keluar
-                  </button>
+      <PageWrapper title="Pengaturan">
+         <div className="w-full md:h-[calc(100vh-160px)] md:overflow-hidden flex flex-col gap-6">
+            <div className="flex flex-col md:flex-row md:items-end justify-between gap-4 px-1 shrink-0">
+               <div className="space-y-1">
+                  <h2 className="text-3xl font-bold tracking-tight text-foreground">
+                     Pengaturan akun
+                  </h2>
+                  <p className="text-sm text-muted-foreground font-medium max-w-md">
+                     Kelola informasi pribadi dan status akun Anda.
+                  </p>
                </div>
+               <button
+                  onClick={() => setIsLogoutModalOpen(true)}
+                  className="inline-flex items-center justify-center gap-2 px-4 py-2 rounded-sm bg-red-950/30 border border-red-500/20 text-red-500 text-sm font-semibold hover:bg-red-950/70 hover:text-red-400 transition-colors duration-200 cursor-pointer"
+               >
+                  <span className="material-symbols-outlined text-lg">
+                     logout
+                  </span>
+                  Keluar
+               </button>
+            </div>
 
-               <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
-                  <nav className="space-y-1">
-                     <button className="w-full flex items-center gap-3 px-4 py-3 rounded-sm bg-primary/10 text-primary text-sm font-semibold text-left cursor-pointer">
-                        <span className="material-symbols-outlined text-xl">
-                           person
-                        </span>
-                        Profil
-                     </button>
-                  </nav>
+            <div className="grid grid-cols-1 md:grid-cols-3 gap-8 flex-1 min-h-0">
+               <nav className="space-y-1 shrink-0">
+                  <button className="w-full flex items-center gap-3 px-4 py-3 rounded-sm bg-primary/10 text-primary text-sm font-semibold text-left cursor-pointer">
+                     <span className="material-symbols-outlined text-xl">
+                        person
+                     </span>
+                     Profil
+                  </button>
+               </nav>
 
-                  <div className="md:col-span-2 space-y-6">
+               <div className="md:col-span-2 relative h-full flex flex-col min-h-0">
+                  <div className="flex-1 overflow-y-auto pr-3 space-y-6 custom-scrollbar pb-16">
                      <Card className="rounded-lg border border-border shadow-md overflow-hidden bg-card">
                         <CardContent className="p-0">
                            <div className="h-32 bg-gradient-to-r from-primary/20 via-primary/10 to-transparent" />
@@ -255,9 +253,10 @@ export default function SettingsPage() {
                         </CardContent>
                      </Card>
                   </div>
+                  <div className="pointer-events-none absolute bottom-0 left-0 right-0 h-16 bg-gradient-to-t from-background via-background/80 to-transparent z-10 md:block hidden" />
                </div>
             </div>
-         </main>
+         </div>
 
          <ConfirmationModal
             isOpen={isLogoutModalOpen}
@@ -278,6 +277,6 @@ export default function SettingsPage() {
             onConfirm={handleDeleteAccount}
             onCancel={() => setIsDeleteAccountModalOpen(false)}
          />
-      </div>
+      </PageWrapper>
    );
 }

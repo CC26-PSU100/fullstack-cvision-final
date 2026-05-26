@@ -66,7 +66,7 @@ export function DropZone({ onFileUpload, isUploading }: DropZoneProps) {
       <input
         ref={inputRef}
         type="file"
-        accept=".pdf,.docx,.doc,.jpg,.png"
+        accept=".pdf,.docx"
         className="sr-only"
         onChange={handleChange}
         aria-label="Upload CV file"
@@ -94,7 +94,7 @@ export function DropZone({ onFileUpload, isUploading }: DropZoneProps) {
         </div>
         <div className="flex flex-wrap items-center justify-center gap-2 pt-2">
           {['PDF', 'DOCX'].map(ext => (
-            <span key={ext} className="px-3 py-1 rounded-lg bg-secondary/50 text-[10px] font-bold text-secondary-foreground">
+            <span key={ext} className="px-3 py-1 rounded-sm bg-secondary/50 text-[10px] font-bold text-secondary-foreground">
               {ext}
             </span>
           ))}
