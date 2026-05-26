@@ -46,6 +46,8 @@ export default function ResultPage() {
    const uploadTriggeredRef = useRef(false);
    const abortControllerRef = useRef<AbortController | null>(null);
    const fileRef = useRef<File | null>(null);
+   const timerRef = useRef<ReturnType<typeof setInterval> | null>(null);
+   const stepTimerRef = useRef<ReturnType<typeof setInterval> | null>(null);
 
    if (!fileRef.current && location.state?.file) {
       fileRef.current = location.state.file;
@@ -67,50 +69,35 @@ export default function ResultPage() {
       const controller = new AbortController();
       abortControllerRef.current = controller;
 
-      let isMounted = true;
-
-      const timer = setInterval(() => {
-         if (isMounted) {
-            setProgressSeconds((prev) => prev + 1);
-         }
+      timerRef.current = setInterval(() => {
+         setProgressSeconds((prev) => prev + 1);
       }, 1000);
 
-      const stepInterval = setInterval(() => {
-         if (isMounted) {
-            setCurrentStepIndex((prev) => {
-               if (prev < STEPS.length - 1) {
-                  return prev + 1;
-               }
-               return prev;
-            });
-         }
+      stepTimerRef.current = setInterval(() => {
+         setCurrentStepIndex((prev) => {
+            if (prev < STEPS.length - 1) {
+               return prev + 1;
+            }
+            return prev;
+         });
       }, 3000);
 
       api.uploadCV(file, controller.signal)
          .then((savedFile) => {
-            if (isMounted) {
-               setData(savedFile);
-               navigate(`/analysis/${savedFile.id}`, { replace: true });
-            }
+            navigate(`/analysis/${savedFile.id}`, { replace: true, state: { scanDuration: progressSeconds } });
          })
          .catch((error) => {
-            if (isMounted && error.name !== "AbortError") {
+            if (error.name !== "AbortError") {
                console.error("Analysis failed:", error);
                setUploadError(error.message || "Gagal menganalisis CV.");
             }
          })
          .finally(() => {
-            if (isMounted) {
-               clearInterval(timer);
-               clearInterval(stepInterval);
-            }
+            if (timerRef.current) clearInterval(timerRef.current);
+            if (stepTimerRef.current) clearInterval(stepTimerRef.current);
          });
 
-      return () => {
-         isMounted = false;
-         clearInterval(timer);
-         clearInterval(stepInterval);
-      };
+      return () => {};
    }, [id, navigate]);
 
    useEffect(() => {
@@ -471,7 +458,7 @@ export default function ResultPage() {
                   {data.metadata?.originalName ||
                      data.metadata?.fileName ||
                      "kandidat"}{" "}
-                  (Dianalisis dalam {data.metadata?.scanDurationSeconds || 0}{" "}
+                  (Dianalisis dalam {(location.state as any)?.scanDuration || data.metadata?.scanDurationSeconds || 0}{" "}
                   detik).
                </p>
             </div>

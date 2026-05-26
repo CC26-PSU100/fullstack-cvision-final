@@ -39,7 +39,7 @@ router.put('/', authenticate, cvController.updateCv);
 router.post('/experience', authenticate, cvController.addExperience);
 router.put('/skills', authenticate, cvController.updateSkills);
 router.post('/upload', optionalAuthenticate, upload.single('cv'), cvController.uploadCv);
-router.post('/upload-and-analyse', optionalAuthenticate, upload.single('cv'), cvController.uploadAndAnalyse);
+router.post('/upload-and-analyse', optionalAuthenticate, (req: any, res: any, next: any) => { req.requestStartTime = Date.now(); next(); }, upload.single('cv'), cvController.uploadAndAnalyse);
 router.post('/analyse', optionalAuthenticate, cvController.analyseCv);
 router.post('/process/:cvId', optionalAuthenticate, cvController.processCv);
 router.post('/:cvId/link', authenticate, cvController.linkCvToUser);

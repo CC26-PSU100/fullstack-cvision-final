@@ -38,6 +38,24 @@ function getFileSize(fileUrl: string | null): {
    return { size: 0, formatted: "0 Bytes", exists: false };
 }
 
+async function destroyCloudinaryWithTimeout(fileUrl: string): Promise<void> {
+   const parts = fileUrl.split("/upload/");
+   if (parts.length !== 2) return;
+   const pathPart = parts[1].replace(/^v\d+\//, "");
+   const resourceType = parts[0].endsWith("/raw") ? "raw" : "image";
+   const publicId =
+      resourceType === "raw"
+         ? pathPart
+         : pathPart.replace(/\.[^/.]+$/, "");
+   const timeout = new Promise<void>((_, reject) =>
+      setTimeout(() => reject(new Error("Cloudinary timeout")), 8000)
+   );
+   await Promise.race([
+      cloudinary.uploader.destroy(publicId, { resource_type: resourceType }),
+      timeout,
+   ]);
+}
+
 export const uploadCv = async (req: any, res: Response) => {
    try {
       const file = req.file;
@@ -244,20 +262,9 @@ export const deleteCv = async (req: any, res: Response) => {
          (cv.fileUrl.startsWith("http://") || cv.fileUrl.startsWith("https://"))
       ) {
          try {
-            const parts = cv.fileUrl.split("/upload/");
-            if (parts.length === 2) {
-               const pathPart = parts[1].replace(/^v\d+\//, "");
-               const resourceType = parts[0].endsWith("/raw") ? "raw" : "image";
-               const publicId =
-                  resourceType === "raw"
-                     ? pathPart
-                     : pathPart.replace(/\.[^/.]+$/, "");
-               await cloudinary.uploader.destroy(publicId, {
-                  resource_type: resourceType,
-               });
-            }
+            await destroyCloudinaryWithTimeout(cv.fileUrl);
          } catch (cloudErr) {
-            console.error(cloudErr);
+            console.error("Cloudinary delete failed or timed out:", cloudErr);
          }
       }
 
@@ -375,41 +382,34 @@ export const uploadAndAnalyse = async (req: any, res: Response) => {
             .json({ success: false, message: "No file uploaded" });
       }
 
-      const startTime = Date.now();
-
-      const fileBuffer = fs.readFileSync(file.path);
-      const fileBlob = new Blob([fileBuffer], { type: file.mimetype });
-      const formData = new FormData();
-      formData.append("file", fileBlob, file.originalname);
-
-      const aiResponse = await axios.post("https://cv-recommender-306785532444.asia-southeast2.run.app/recommend", formData, {
-         headers: {
-            "Content-Type": "multipart/form-data",
-         },
-      });
-
-      const analysisResult = aiResponse.data;
-      const endTime = Date.now();
-      const scanDurationSeconds = Math.round((endTime - startTime) / 1000);
-
-      analysisResult.metadata = {
-         fileSize: file.size,
-         fileSizeFormatted: formatFileSize(file.size),
-         originalName: file.originalname,
-         scanDurationSeconds
-      };
-
+      const startTime = req.requestStartTime || Date.now();
       const userId = req.user?.id;
-      const folderPath = userId ? `cvs/${userId}` : "cvs/guests";
-
       let fileUrl = "";
+      let analysisResult: any;
+
       try {
-         const result = await cloudinary.uploader.upload(file.path, {
-            folder: folderPath,
-            public_id: path.parse(file.filename).name,
-            resource_type: "auto",
-         });
-         fileUrl = result.secure_url;
+         const fileBuffer = fs.readFileSync(file.path);
+         const fileBlob = new Blob([fileBuffer], { type: file.mimetype });
+         const formData = new FormData();
+         formData.append("file", fileBlob, file.originalname);
+
+         const folderPath = userId ? `cvs/${userId}` : "cvs/guests";
+
+         const [aiResponse, cloudinaryResult] = await Promise.all([
+            axios.post("https://cv-recommender-306785532444.asia-southeast2.run.app/recommend", formData, {
+               headers: {
+                  "Content-Type": "multipart/form-data",
+               },
+            }),
+            cloudinary.uploader.upload(file.path, {
+               folder: folderPath,
+               public_id: path.parse(file.filename).name,
+               resource_type: "auto",
+            })
+         ]);
+
+         analysisResult = aiResponse.data;
+         fileUrl = cloudinaryResult.secure_url;
       } finally {
          if (fs.existsSync(file.path)) {
             fs.unlinkSync(file.path);
@@ -425,13 +425,6 @@ export const uploadAndAnalyse = async (req: any, res: Response) => {
             fileUrl,
             inputType: "pdf",
             status: "done",
-         },
-      });
-
-      await (prisma.cvAnalysis as any).create({
-         data: {
-            cvId: cv.id,
-            analysisResult,
          },
       });
 
@@ -492,6 +485,23 @@ export const uploadAndAnalyse = async (req: any, res: Response) => {
             });
          }
       }
+
+      const endTime = Date.now();
+      const scanDurationSeconds = Math.max(1, Math.round((endTime - startTime) / 1000));
+
+      analysisResult.metadata = {
+         fileSize: file.size,
+         fileSizeFormatted: formatFileSize(file.size),
+         originalName: file.originalname,
+         scanDurationSeconds
+      };
+
+      await (prisma.cvAnalysis as any).create({
+         data: {
+            cvId: cv.id,
+            analysisResult,
+         },
+      });
 
       res.json({
          success: true,
@@ -678,14 +688,20 @@ export const getCvDetailedAnalysis = async (req: any, res: Response) => {
          domains: [],
       };
 
+      const dbDuration = cv.cvAnalysis 
+         ? Math.max(1, Math.round((cv.cvAnalysis.createdAt.getTime() - cv.createdAt.getTime()) / 1000))
+         : 15;
+
       const finalAnalysisResult = typeof analysisResult === "object" ? { ...analysisResult } : { recommendations: [], domains: [] };
       if (!finalAnalysisResult.metadata) {
          finalAnalysisResult.metadata = {
             fileSize: fileInfo.size,
             fileSizeFormatted: fileInfo.formatted,
             originalName: cv.fileUrl?.split("/").pop() || "cv.pdf",
-            scanDurationSeconds: 15
+            scanDurationSeconds: dbDuration
          };
+      } else if (typeof finalAnalysisResult.metadata.scanDurationSeconds !== "number") {
+         finalAnalysisResult.metadata.scanDurationSeconds = dbDuration;
       }
 
       res.json({
@@ -725,20 +741,9 @@ export const deleteAllCvs = async (req: any, res: Response) => {
             (cv.fileUrl.startsWith("http://") || cv.fileUrl.startsWith("https://"))
          ) {
             try {
-               const parts = cv.fileUrl.split("/upload/");
-               if (parts.length === 2) {
-                  const pathPart = parts[1].replace(/^v\d+\//, "");
-                  const resourceType = parts[0].endsWith("/raw") ? "raw" : "image";
-                  const publicId =
-                     resourceType === "raw"
-                        ? pathPart
-                        : pathPart.replace(/\.[^/.]+$/, "");
-                  await cloudinary.uploader.destroy(publicId, {
-                     resource_type: resourceType,
-                  });
-               }
+               await destroyCloudinaryWithTimeout(cv.fileUrl);
             } catch (cloudErr) {
-               console.error(cloudErr);
+               console.error("Cloudinary delete failed or timed out:", cloudErr);
             }
          }
       }
