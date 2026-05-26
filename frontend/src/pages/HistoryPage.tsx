@@ -15,8 +15,6 @@ export default function HistoryPage() {
   const { uploads } = useRecentUploads();
 
   const [searchQuery, setSearchQuery] = useState("");
-  const [debouncedQuery, setDebouncedQuery] = useState("");
-  const [isSearching, setIsSearching] = useState(false);
   const [isFilterOpen, setIsFilterOpen] = useState(false);
 
   const [dateFilter, setDateFilter] = useState("all");
@@ -46,22 +44,8 @@ export default function HistoryPage() {
     { value: "low", label: "Kurang cocok (< 75%)" },
   ];
 
-  useEffect(() => {
-    if (!searchQuery) {
-      setDebouncedQuery("");
-      setIsSearching(false);
-      return;
-    }
-    setIsSearching(true);
-    const timer = setTimeout(() => {
-      setDebouncedQuery(searchQuery);
-      setIsSearching(false);
-    }, 400);
-    return () => clearTimeout(timer);
-  }, [searchQuery]);
-
   const filteredUploads = safeUploads.filter((upload) => {
-    if (debouncedQuery && !upload.name.toLowerCase().includes(debouncedQuery.toLowerCase())) {
+    if (searchQuery && !upload.name.toLowerCase().includes(searchQuery.toLowerCase())) {
       return false;
     }
 
@@ -128,11 +112,6 @@ export default function HistoryPage() {
               onChange={(e) => setSearchQuery(e.target.value)}
               className="h-10 pl-10 pr-10 rounded-sm bg-card border-border focus:ring-primary/20 text-sm w-full"
             />
-            {isSearching && (
-              <div className="absolute right-3 top-1/2 -translate-y-1/2 flex items-center">
-                <div className="animate-spin rounded-full h-4 w-4 border-2 border-primary border-t-transparent" />
-              </div>
-            )}
           </div>
 
           <DropdownMenu open={isFilterOpen} onOpenChange={setIsFilterOpen}>

@@ -15,6 +15,12 @@ export default function LoginPage() {
     if (token) {
       navigate("/dashboard");
     }
+
+    const reason = localStorage.getItem("logoutReason");
+    if (reason) {
+      toast.error(reason);
+      localStorage.removeItem("logoutReason");
+    }
   }, [navigate]);
 
   const handleLogin = async (e: React.FormEvent) => {
