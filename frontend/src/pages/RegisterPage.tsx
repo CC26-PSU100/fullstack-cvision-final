@@ -44,8 +44,8 @@ export default function RegisterPage() {
     <div className="min-h-screen w-full flex bg-background">
       <div className="hidden lg:flex lg:w-1/2 relative bg-card overflow-hidden items-center justify-center p-12 border-r border-border">
         <div className="absolute top-0 left-0 w-full h-full opacity-40">
-           <div className="absolute top-[-10%] right-[-10%] w-full h-full bg-gradient-to-bl from-white/10 to-transparent rounded-lg blur-3xl" />
-           <div className="absolute bottom-[-10%] left-[-10%] w-full h-full bg-gradient-to-tr from-white/5 to-transparent rounded-lg blur-3xl" />
+           <div className="absolute top-[-10%] right-[-10%] w-full h-full bg-linear-to-bl from-white/10 to-transparent rounded-lg blur-3xl" />
+           <div className="absolute bottom-[-10%] left-[-10%] w-full h-full bg-linear-to-tr from-white/5 to-transparent rounded-lg blur-3xl" />
         </div>
 
         <div className="relative z-10 max-w-md space-y-8 animate-in fade-in slide-in-from-bottom-4 duration-1000">
@@ -75,7 +75,7 @@ export default function RegisterPage() {
       </div>
 
       <div className="w-full lg:w-1/2 flex items-center justify-center p-6 md:p-12 animate-in fade-in duration-700">
-        <div className="w-full max-w-[420px] space-y-10">
+        <div className="w-full max-w-105 space-y-10">
           <div className="lg:hidden flex flex-col items-center text-center space-y-4 mb-8">
             <span className="material-symbols-outlined text-4xl text-foreground">
               description

@@ -3,15 +3,17 @@ import { Skeleton } from "@/components/ui/skeleton";
 
 export function StatCardSkeleton() {
   return (
-    <Card className="bg-card border-border/40 rounded-2xl overflow-hidden shadow-sm">
-      <CardContent className="p-6">
-        <div className="flex items-center justify-between">
-          <div className="space-y-3">
-            <Skeleton className="h-3 w-24 bg-muted/40 rounded-full" />
-            <Skeleton className="h-8 w-16 bg-muted/40 rounded-lg" />
-            <Skeleton className="h-2 w-32 bg-muted/20 rounded-full" />
+    <Card className="rounded-lg overflow-hidden border border-border bg-card shadow-sm">
+      <CardContent className="p-6 md:p-8">
+        <div className="flex items-center justify-between gap-4">
+          <div className="space-y-2 flex-1">
+            <Skeleton className="h-3.5 w-24 bg-muted/40 rounded-sm" />
+            <Skeleton className="h-8 w-16 bg-muted/40 rounded-sm" />
+            <Skeleton className="h-3 w-32 bg-muted/20 rounded-sm" />
           </div>
-          <Skeleton className="w-14 h-14 rounded-2xl bg-muted/30" />
+          <div className="shrink-0 flex items-center justify-center">
+            <Skeleton className="w-9 h-9 bg-muted/30 rounded-sm" />
+          </div>
         </div>
       </CardContent>
     </Card>

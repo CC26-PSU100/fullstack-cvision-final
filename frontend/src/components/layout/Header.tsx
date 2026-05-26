@@ -33,7 +33,7 @@ export function Header({ title }: HeaderProps) {
 
       <div className="h-6 w-px bg-border mx-1 hidden md:block" />
 
-      <h1 className="text-2xl font-bold tracking-tight text-foreground font-[family-name:var(--font-family-heading)]">
+      <h1 className="text-2xl font-bold tracking-tight text-foreground font-(family-name:--font-family-heading)">
         {title}
       </h1>
     </header>

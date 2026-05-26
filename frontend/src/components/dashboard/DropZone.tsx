@@ -56,7 +56,7 @@ export function DropZone({ onFileUpload, isUploading }: DropZoneProps) {
       className={cn(
         "relative flex flex-col items-center justify-center gap-6 rounded-lg border-2 border-dashed",
         "bg-card/30 backdrop-blur-sm cursor-pointer transition-all duration-300",
-        "p-10 md:p-12 min-h-[240px]",
+        "p-10 md:p-12 min-h-60",
         isDragging
           ? "border-foreground/40 bg-foreground/5 shadow-2xl shadow-black/20"
           : "border-border/60 hover:border-foreground/20 hover:bg-card/50 shadow-sm hover:shadow-xl",
@@ -83,7 +83,7 @@ export function DropZone({ onFileUpload, isUploading }: DropZoneProps) {
 
       <div className="text-center space-y-3">
         <div className="space-y-1">
-          <p className="text-lg font-bold text-foreground tracking-tight font-[family-name:var(--font-family-heading)]">
+          <p className="text-lg font-bold text-foreground tracking-tight font-(family-name:--font-family-heading)">
             {isDragging ? "Lepaskan CV di sini" : "Unggah CV Anda"}
           </p>
           <p className="text-sm text-muted-foreground font-medium max-w-xs mx-auto">

@@ -65,7 +65,7 @@ export function Select({
          {isOpen && (
             <div
                className={cn(
-                  "absolute left-0 w-full min-w-[120px] rounded-sm border border-border bg-card p-1 shadow-lg z-50 animate-in fade-in duration-100",
+                  "absolute left-0 w-full min-w-30 rounded-sm border border-border bg-card p-1 shadow-lg z-50 animate-in fade-in duration-100",
                   position === "top"
                      ? "bottom-full top-auto mb-1 slide-in-from-bottom-1"
                      : "top-full bottom-auto mt-1 slide-in-from-top-1",

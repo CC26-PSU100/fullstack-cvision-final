@@ -136,7 +136,7 @@ export default function HistoryPage() {
           </div>
 
           <DropdownMenu open={isFilterOpen} onOpenChange={setIsFilterOpen}>
-            <DropdownMenuTrigger asChild>
+            <DropdownMenuTrigger>
               <button
                 className="h-10 flex items-center justify-center gap-2 px-4 rounded-sm bg-card border border-border text-sm font-bold text-foreground/60 hover:text-foreground hover:bg-muted transition-colors duration-200 shadow-sm cursor-pointer"
               >

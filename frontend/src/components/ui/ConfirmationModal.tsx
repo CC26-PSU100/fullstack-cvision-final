@@ -22,7 +22,7 @@ export function ConfirmationModal({
   if (!isOpen) return null;
 
   return (
-    <div className="fixed inset-0 z-[200] flex items-center justify-center bg-black/60 backdrop-blur-sm p-4 animate-in fade-in duration-200">
+    <div className="fixed inset-0 z-200 flex items-center justify-center bg-black/60 backdrop-blur-sm p-4 animate-in fade-in duration-200">
       <Card className="w-full max-w-md border border-border bg-card rounded-lg shadow-2xl p-6 animate-in zoom-in-95 duration-200">
         <CardContent className="p-0 space-y-4 bg-card text-foreground">
           <div className="space-y-2">

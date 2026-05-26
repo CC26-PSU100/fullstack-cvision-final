@@ -37,7 +37,7 @@ export function RecentUploads({ uploads }: RecentUploadsProps) {
             <p className="text-base font-bold text-foreground tracking-tight">
               Belum ada unggahan
             </p>
-            <p className="text-sm text-muted-foreground mt-1 max-w-[200px]">
+            <p className="text-sm text-muted-foreground mt-1 max-w-50">
               Unggah CV pertama Anda untuk memulai analisis
             </p>
           </CardContent>

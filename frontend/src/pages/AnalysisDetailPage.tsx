@@ -73,7 +73,7 @@ export default function AnalysisDetailPage() {
   return (
     <PageWrapper title="Analisis CV" className="space-y-8">
       {isViewerOpen && (
-        <div className="fixed inset-0 z-[100] flex items-center justify-center bg-black/90 backdrop-blur-md p-4 md:p-10 animate-in fade-in duration-300">
+        <div className="fixed inset-0 z-100 flex items-center justify-center bg-black/90 backdrop-blur-md p-4 md:p-10 animate-in fade-in duration-300">
           <div className="relative w-full h-full max-w-5xl bg-card rounded-lg overflow-hidden border border-border shadow-2xl flex flex-col">
             <div className="px-8 py-6 border-b border-border flex items-center justify-between bg-muted/20">
               <div className="space-y-1">
@@ -176,7 +176,7 @@ export default function AnalysisDetailPage() {
             {data.recommendations.map((item) => (
               <Card key={item.rank} className="rounded-lg overflow-hidden border border-border p-0 shadow-md bg-card">
                 <CardContent className="p-0">
-                  <div className="flex items-stretch min-h-[100px]">
+                  <div className="flex items-stretch min-h-25">
                     <div className="w-16 md:w-20 bg-muted/50 flex items-center justify-center border-r border-border transition-colors">
                       <span className="text-xl md:text-2xl font-bold text-muted-foreground/20 transition-colors">
                         #{item.rank}

@@ -115,7 +115,7 @@ export default function SettingsPage() {
                   <div className="flex-1 overflow-y-auto pr-3 space-y-6 custom-scrollbar pb-16">
                      <Card className="rounded-lg border border-border shadow-md overflow-hidden bg-card">
                         <CardContent className="p-0">
-                           <div className="h-32 bg-gradient-to-r from-primary/20 via-primary/10 to-transparent" />
+                           <div className="h-32 bg-linear-to-r from-primary/20 via-primary/10 to-transparent" />
 
                            <div className="px-6 pb-6">
                               <div className="relative -mt-12 mb-6 flex flex-col sm:flex-row sm:items-end gap-4">
@@ -253,7 +253,7 @@ export default function SettingsPage() {
                         </CardContent>
                      </Card>
                   </div>
-                  <div className="pointer-events-none absolute bottom-0 left-0 right-0 h-16 bg-gradient-to-t from-background via-background/80 to-transparent z-10 md:block hidden" />
+                  <div className="pointer-events-none absolute bottom-0 left-0 right-0 h-16 bg-linear-to-t from-background via-background/80 to-transparent z-10 md:block hidden" />
                </div>
             </div>
          </div>
