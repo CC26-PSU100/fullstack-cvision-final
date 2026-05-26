@@ -16,11 +16,12 @@ const checkFileHasText = async (file: File): Promise<boolean> => {
          const reader = new FileReader();
          reader.onload = () => {
             const content = reader.result as string;
-            const hasFont = content.includes("/Font") || 
-                            content.includes("/Type /Font") || 
-                            content.includes("/Type/Font") || 
-                            content.includes("/FontName") || 
-                            content.includes("ToUnicode");
+            const hasFont =
+               content.includes("/Font") ||
+               content.includes("/Type /Font") ||
+               content.includes("/Type/Font") ||
+               content.includes("/FontName") ||
+               content.includes("ToUnicode");
             resolve(hasFont);
          };
          reader.readAsText(file.slice(0, 1024 * 1024));
@@ -36,18 +37,27 @@ const checkFileHasText = async (file: File): Promise<boolean> => {
             let found = false;
             let uncompressedSize = 0;
             for (let i = 0; i < bytes.length - 30; i++) {
-               if (bytes[i] === 0x50 && bytes[i+1] === 0x4B && bytes[i+2] === 0x03 && bytes[i+3] === 0x04) {
-                  const nameLen = bytes[i+26] | (bytes[i+27] << 8);
+               if (
+                  bytes[i] === 0x50 &&
+                  bytes[i + 1] === 0x4b &&
+                  bytes[i + 2] === 0x03 &&
+                  bytes[i + 3] === 0x04
+               ) {
+                  const nameLen = bytes[i + 26] | (bytes[i + 27] << 8);
                   if (nameLen === filenameStr.length) {
                      let match = true;
                      for (let j = 0; j < nameLen; j++) {
-                        if (bytes[i+30+j] !== filenameBytes[j]) {
+                        if (bytes[i + 30 + j] !== filenameBytes[j]) {
                            match = false;
                            break;
                         }
                      }
                      if (match) {
-                        uncompressedSize = bytes[i+22] | (bytes[i+23] << 8) | (bytes[i+24] << 16) | (bytes[i+25] << 24);
+                        uncompressedSize =
+                           bytes[i + 22] |
+                           (bytes[i + 23] << 8) |
+                           (bytes[i + 24] << 16) |
+                           (bytes[i + 25] << 24);
                         found = true;
                         break;
                      }
@@ -73,15 +83,19 @@ export default function DashboardPage() {
    const firstName = user?.name ? user.name.split(" ")[0] : "Guest";
 
    const handleFileUpload = async (file: File) => {
-      const fileExt = file.name.split('.').pop()?.toLowerCase();
-      if (fileExt !== 'pdf' && fileExt !== 'docx') {
-         toast.error("Format file tidak didukung! Hanya diperbolehkan file PDF dan DOCX.");
+      const fileExt = file.name.split(".").pop()?.toLowerCase();
+      if (fileExt !== "pdf" && fileExt !== "docx") {
+         toast.error(
+            "Format file tidak didukung! Hanya diperbolehkan file PDF dan DOCX.",
+         );
          return;
       }
 
       const hasText = await checkFileHasText(file);
       if (!hasText) {
-         toast.error("CV ditolak! CV ini terdeteksi hanya berisi gambar/scan tanpa teks. Harap unggah CV asli yang berisi teks agar dapat dianalisis oleh AI.");
+         toast.error(
+            "CV ditolak! CV ini terdeteksi hanya berisi gambar/scan tanpa teks. Harap unggah CV asli yang berisi teks agar dapat dianalisis oleh AI.",
+         );
          return;
       }
 
@@ -111,7 +125,10 @@ export default function DashboardPage() {
             <div className="flex flex-col md:flex-row md:items-end justify-between gap-4 px-1">
                <div className="space-y-1">
                   <h2 className="text-3xl font-bold tracking-tight text-foreground">
-                     Halo, <span className="text-foreground/60 italic">{firstName}</span>
+                     Halo,{" "}
+                     <span className="text-foreground/60 italic">
+                        {firstName}
+                     </span>
                   </h2>
                   <p className="text-sm text-muted-foreground font-medium max-w-md">
                      Unggah file baru untuk memulai.
@@ -154,19 +171,28 @@ export default function DashboardPage() {
                         label="Total CV terurai"
                         value={stats.totalCVsParsed}
                         icon="description"
-                        description={stats.cvsParsedDescription || "Belum ada unggahan bulan ini"}
+                        description={
+                           stats.cvsParsedDescription ||
+                           "Belum ada unggahan bulan ini"
+                        }
                      />
                      <StatCard
                         label="Tingkat kecocokan kerja"
                         value={`${stats.jobMatchRate}%`}
                         icon="bolt"
-                        description={stats.jobMatchRateDescription || "Unggah CV untuk melihat tingkat kecocokan"}
+                        description={
+                           stats.jobMatchRateDescription ||
+                           "Unggah CV untuk melihat tingkat kecocokan"
+                        }
                      />
                      <StatCard
                         label="Rekomendasi pekerjaan"
                         value={stats.jobRecommendations}
                         icon="magic_button"
-                        description={stats.jobRecommendationsDescription || "Belum ada rekomendasi baru"}
+                        description={
+                           stats.jobRecommendationsDescription ||
+                           "Belum ada rekomendasi baru"
+                        }
                      />
                   </>
                ) : null}
