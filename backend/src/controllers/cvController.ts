@@ -4,6 +4,8 @@ import path from "path";
 import axios from "axios";
 import cloudinary from "../config/cloudinary";
 import prisma from "../config/prisma";
+import { cleanAnalysisResult } from "../services/aiCleaner";
+
 
 function formatFileSize(bytes: number): string {
    if (bytes === 0) return "0 Bytes";
@@ -396,7 +398,7 @@ export const uploadAndAnalyse = async (req: any, res: Response) => {
          const folderPath = userId ? `cvs/${userId}` : "cvs/guests";
 
          const [aiResponse, cloudinaryResult] = await Promise.all([
-            axios.post("https://cv-recommender-306785532444.asia-southeast2.run.app/recommend", formData, {
+            axios.post("https://cv-recommender-306785532444.asia-southeast2.run.app/recommend-full", formData, {
                headers: {
                   "Content-Type": "multipart/form-data",
                },
@@ -409,6 +411,16 @@ export const uploadAndAnalyse = async (req: any, res: Response) => {
          ]);
 
          analysisResult = aiResponse.data;
+
+         // Clean analysis result with Gen AI if key is available
+         if (process.env.GEMINI_API_KEY) {
+            try {
+               analysisResult = await cleanAnalysisResult(analysisResult);
+            } catch (cleanErr) {
+               console.error("Gen AI cleaning failed, falling back to raw data:", cleanErr);
+            }
+         }
+
          fileUrl = cloudinaryResult.secure_url;
       } finally {
          if (fs.existsSync(file.path)) {
@@ -555,13 +567,23 @@ export const analyseCv = async (req: any, res: Response) => {
       const formData = new FormData();
       formData.append("file", fileBlob, "cv.pdf");
 
-      const aiResponse = await axios.post("https://cv-recommender-306785532444.asia-southeast2.run.app/recommend", formData, {
+      const aiResponse = await axios.post("https://cv-recommender-306785532444.asia-southeast2.run.app/recommend-full", formData, {
          headers: {
             "Content-Type": "multipart/form-data",
          },
       });
 
-      const analysisResult = aiResponse.data;
+      let analysisResult = aiResponse.data;
+
+      // Clean analysis result with Gen AI if key is available
+      if (process.env.GEMINI_API_KEY) {
+         try {
+            analysisResult = await cleanAnalysisResult(analysisResult);
+         } catch (cleanErr) {
+            console.error("Gen AI cleaning failed, falling back to raw data:", cleanErr);
+         }
+      }
+
       const endTime = Date.now();
       const scanDurationSeconds = Math.round((endTime - startTime) / 1000);
 
