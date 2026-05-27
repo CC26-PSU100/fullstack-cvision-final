@@ -67,4 +67,6 @@ export interface CVAnalysisResult {
   }>;
   skills?: string[];
   fileUrl?: string;
+  summaryText?: string;
+  suggestions?: string[];
 }

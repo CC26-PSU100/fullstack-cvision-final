@@ -398,7 +398,7 @@ export const uploadAndAnalyse = async (req: any, res: Response) => {
          const folderPath = userId ? `cvs/${userId}` : "cvs/guests";
 
          const [aiResponse, cloudinaryResult] = await Promise.all([
-            axios.post("https://cv-recommender-306785532444.asia-southeast2.run.app/recommend-full", formData, {
+            axios.post("https://cv-recommender-306785532444.asia-southeast2.run.app/recommend", formData, {
                headers: {
                   "Content-Type": "multipart/form-data",
                },
@@ -413,7 +413,7 @@ export const uploadAndAnalyse = async (req: any, res: Response) => {
          analysisResult = aiResponse.data;
 
          // Clean analysis result with Gen AI if key is available
-         if (process.env.GEMINI_API_KEY) {
+         if (process.env.DEEPSEEK_API_KEY) {
             try {
                analysisResult = await cleanAnalysisResult(analysisResult);
             } catch (cleanErr) {
@@ -576,7 +576,7 @@ export const analyseCv = async (req: any, res: Response) => {
       let analysisResult = aiResponse.data;
 
       // Clean analysis result with Gen AI if key is available
-      if (process.env.GEMINI_API_KEY) {
+      if (process.env.DEEPSEEK_API_KEY) {
          try {
             analysisResult = await cleanAnalysisResult(analysisResult);
          } catch (cleanErr) {

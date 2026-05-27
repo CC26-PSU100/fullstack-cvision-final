@@ -250,9 +250,27 @@ export default function AnalysisDetailPage() {
              <CardContent className="p-0 relative z-10 space-y-4">
                 <span className="material-symbols-outlined text-3xl text-foreground mb-4 block">lightbulb</span>
                 <h4 className="text-lg font-bold text-foreground leading-tight">Saran ahli</h4>
-                <p className="text-sm text-muted-foreground font-medium leading-relaxed">
-                  Berdasarkan analisis kami, kandidat ini menunjukkan kekuatan luar biasa dalam bidang <span className="text-foreground font-bold">{data.domains[0]?.domain || "bidang ini"}</span>.
-                </p>
+                <div className="space-y-4">
+                  <p className="text-sm text-muted-foreground font-medium leading-relaxed">
+                    {data.summaryText || (
+                      <>
+                        Berdasarkan analisis kami, kandidat ini menunjukkan kekuatan luar biasa dalam bidang <span className="text-foreground font-bold">{data.domains[0]?.domain || "bidang ini"}</span>.
+                      </>
+                    )}
+                  </p>
+                  {data.suggestions && data.suggestions.length > 0 && (
+                    <div className="space-y-2 pt-3 border-t border-border/40">
+                      <p className="text-xs font-bold text-foreground uppercase tracking-wider">
+                        Saran Pengembangan:
+                      </p>
+                      <ul className="list-disc list-inside text-sm text-muted-foreground space-y-1.5">
+                        {data.suggestions.map((suggestion, idx) => (
+                          <li key={idx}>{suggestion}</li>
+                        ))}
+                      </ul>
+                    </div>
+                  )}
+                </div>
              </CardContent>
           </Card>
         </div>

@@ -611,7 +611,7 @@ export default function ResultPage() {
                </div>
             </div>
 
-            <div className="lg:col-span-5 flex flex-col justify-between gap-5">
+            <div className="lg:col-span-5 flex flex-col gap-5">
                <div className="space-y-4">
                   <div className="px-1">
                      <h3 className="text-xl font-bold text-foreground tracking-tight flex items-center gap-2">
@@ -672,7 +672,7 @@ export default function ResultPage() {
                   </div>
                )}
 
-               <Card className="bg-muted/10 border border-border rounded-lg p-6 relative overflow-hidden flex-1 flex flex-col justify-center">
+               <Card className="bg-muted/10 border border-border rounded-lg p-6 relative overflow-hidden flex flex-col justify-start">
                   <CardContent className="p-0 relative z-10 space-y-3">
                      <div className="flex items-center gap-3">
                         <span className="material-symbols-outlined text-3xl text-foreground">
@@ -682,9 +682,32 @@ export default function ResultPage() {
                            {EXPERT_ADVICE.title}
                         </h4>
                      </div>
-                     <p className="text-sm text-muted-foreground font-medium leading-relaxed">
-                        {EXPERT_ADVICE.content}
-                     </p>
+                     <div className="space-y-3">
+                        <p className="text-sm text-muted-foreground font-medium leading-relaxed">
+                           {data.summaryText || (
+                              <>
+                                 Berdasarkan analisis kami, kandidat ini menunjukkan kekuatan luar biasa
+                                 dalam bidang{" "}
+                                 <span className="text-foreground font-bold">
+                                    {data.domains?.[0]?.domain || "arsitektur perangkat lunak"}
+                                 </span>
+                                 .
+                              </>
+                           )}
+                        </p>
+                        {data.suggestions && data.suggestions.length > 0 && (
+                           <div className="space-y-1.5 pt-2 border-t border-border/40">
+                              <p className="text-xs font-bold text-foreground uppercase tracking-wider">
+                                 Saran Pengembangan:
+                              </p>
+                              <ul className="list-disc list-inside text-sm text-muted-foreground space-y-1">
+                                 {data.suggestions.map((suggestion, index) => (
+                                    <li key={index}>{suggestion}</li>
+                                 ))}
+                              </ul>
+                           </div>
+                        )}
+                     </div>
                   </CardContent>
                </Card>
             </div>

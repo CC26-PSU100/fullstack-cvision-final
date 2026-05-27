@@ -119,14 +119,14 @@ async function test() {
    console.log(JSON.stringify(sampleRawData, null, 2));
    console.log("\n==========================");
 
-   const apiKey = process.env.GEMINI_API_KEY;
+   const apiKey = process.env.DEEPSEEK_API_KEY;
    if (!apiKey) {
-      console.error("\n[Error] GEMINI_API_KEY is not defined in backend/.env.");
-      console.log("Please define GEMINI_API_KEY in your .env file to run the AI cleanup test.\n");
+      console.error("\n[Error] DEEPSEEK_API_KEY is not defined in backend/.env.");
+      console.log("Please define DEEPSEEK_API_KEY in your .env file to run the AI cleanup test.\n");
       return;
    }
 
-   console.log("\nSending data to Google Gemini API for cleaning...");
+   console.log("\nSending data to DeepSeek API for cleaning...");
    const startTime = Date.now();
    const cleanedData = await cleanAnalysisResult(sampleRawData);
    const duration = ((Date.now() - startTime) / 1000).toFixed(2);
