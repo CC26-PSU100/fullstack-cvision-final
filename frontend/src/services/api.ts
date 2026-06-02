@@ -2,7 +2,7 @@ import type { CVFile } from "@/types/cv";
 import type { DashboardStats } from "@/types/stats";
 import type { AuthResponse, RegisterPayload, LoginPayload } from "@/types/auth";
 
-const BASE_URL = typeof window !== "undefined" ? window.location.origin : "http://localhost:3000";
+const BASE_URL = typeof window !== "undefined" ? window.location.origin : "https://cvision-backend-v1.vercel.app/api";
 const BACKEND_URL = `${BASE_URL}/api`;
 
 const normalizeFileUrl = (url?: string) => {
