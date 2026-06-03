@@ -5,14 +5,17 @@ import fs from "fs";
 import helmet from "helmet";
 import morgan from "morgan";
 import path from "path";
+import os from "os";
 import routes from "./routes";
 
 dotenv.config();
 
-const uploadsPath = path.resolve(process.cwd(), "uploads");
+const uploadsPath = process.env.VERCEL
+   ? path.join(os.tmpdir(), "uploads")
+   : path.resolve(process.cwd(), "uploads");
 
 if (!fs.existsSync(uploadsPath)) {
-   fs.mkdirSync(uploadsPath);
+   fs.mkdirSync(uploadsPath, { recursive: true });
 }
 
 const app = express();

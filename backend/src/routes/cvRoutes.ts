@@ -4,12 +4,14 @@ import { authenticate, optionalAuthenticate } from '../middleware/auth';
 import multer from 'multer';
 import path from 'path';
 import crypto from 'crypto';
+import os from 'os';
 
 const router = Router();
 
 const storage = multer.diskStorage({
   destination: (req, file, cb) => {
-    cb(null, 'uploads/');
+    const uploadPath = process.env.VERCEL ? path.join(os.tmpdir(), "uploads") : 'uploads/';
+    cb(null, uploadPath);
   },
   filename: (req, file, cb) => {
     const originalName = path.parse(file.originalname).name.replace(/[^a-zA-Z0-9_-]/g, '_');
