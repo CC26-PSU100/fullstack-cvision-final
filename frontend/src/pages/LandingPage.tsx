@@ -173,7 +173,7 @@ export default function LandingPage() {
                     <div className="grid grid-cols-2 gap-4 mt-8">
                       <div className="h-24 rounded-xl bg-white/5 border border-white/10 p-4 flex flex-col justify-between">
                         <div className="text-[10px] font-medium uppercase text-zinc-500 tracking-[0.2em]">Accuracy</div>
-                        <div className="text-3xl font-semibold text-white">70%+</div>
+                        <div className="text-3xl font-semibold text-white">80%+</div>
                       </div>
                       <div className="h-24 rounded-xl bg-white/5 border border-white/10 p-4 flex flex-col justify-between">
                         <div className="text-[10px] font-medium uppercase text-zinc-500 tracking-[0.2em]">Extraction</div>
@@ -237,7 +237,7 @@ export default function LandingPage() {
                       <div className="absolute top-6 right-6 w-10 h-10 rounded-full bg-white/5 flex items-center justify-center">
                         <Zap className="w-5 h-5 text-zinc-500" />
                       </div>
-                      <div className="text-3xl md:text-5xl font-semibold tracking-tighter text-white">70%+</div>
+                      <div className="text-3xl md:text-5xl font-semibold tracking-tighter text-white">80%+</div>
                       <div className="text-[10px] md:text-xs font-medium uppercase tracking-[0.2em] text-zinc-500">Accuracy Rate</div>
                       <div className="absolute -bottom-6 -left-6 w-32 h-32 bg-white/5 blur-3xl rounded-full opacity-0 group-hover:opacity-100 transition-opacity" />
                    </div>
